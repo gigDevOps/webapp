@@ -1,0 +1,11 @@
+/**
+ *
+ * @type {string}
+ */
+export const JOBS_FETCHING = 'JOBS_FETCHING';
+export const JOBS_FETCHING_DONE = 'JOBS_FETCHING_DONE';
+export const JOBS_FETCHING_FAIL = 'JOBS_FETCHING_FAIL';
+
+export const JOB_FETCHING = 'JOB_FETCHING';
+export const JOB_FETCHING_DONE = 'JOB_FETCHING_DONE';
+export const JOB_FETCHING_FAIL = 'JOB_FETCHING_FAIL';

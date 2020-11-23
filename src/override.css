@@ -1,0 +1,73 @@
+body {
+    color: #000000;
+    background: #f3f8f9;
+}
+
+.rs-picker-default .rs-picker-toggle.rs-btn {
+    padding: 0.7rem 2rem 0.7rem 0.7rem;
+}
+
+.rs-btn-ghost, .rs-picker-default .rs-picker-toggle, .rs-btn.rs-btn-ghost {
+    color: #555555;
+    border: 1px solid #cccccc;
+    background: #ffffff;
+    font-weight: 500;
+    padding: 0.7rem 1rem;
+}
+
+.rs-btn-primary {
+    background: #f99400;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.rs-btn-primary:hover, .rs-btn-primary:focus, .rs-btn-primary:not(.rs-btn-disabled):hover {
+    background: #e26c22;
+}
+
+.rs-btn-ghost:hover, .rs-picker-default:not(.rs-picker-disabled) .rs-btn:hover,
+.rs-picker-default:not(.rs-picker-disabled) .rs-picker-toggle:hover, .rs-picker-default:not(.rs-picker-disabled) .rs-btn.active,
+.rs-picker-default:not(.rs-picker-disabled) .rs-picker-toggle.active,
+.rs-btn-ghost:focus, .rs-btn-ghost.rs-btn-focus,
+.rs-btn-ghost:active, .rs-btn-ghost.rs-btn-active, .rs-open > .rs-dropdown-toggle.rs-btn-ghost {
+    color: #e26c22;
+    border: 1px solid #cccccc;
+}
+
+.rs-picker-has-value .rs-btn .rs-picker-toggle-value, .rs-picker-has-value .rs-picker-toggle .rs-picker-toggle-value {
+    color: #555555;
+}
+
+.rs-btn {
+    border-radius: 2px;
+    padding: 0.755rem 1.25rem;
+    font-size: 90%;
+    font-weight: 600;
+}
+
+.rs-btn-link, .rs-btn-link:hover, .rs-btn-link:focus {
+    color: #2D9A65;
+    font-weight: 500;
+}
+
+.rs-btn-primary.rs-btn-green {
+    background: #00c663;
+}
+
+.rs-btn.rs-btn-sm {
+    font-size: 0.7rem;
+    padding: 0.45rem 1rem;
+}
+
+.rs-btn.rs-btn-sm i {
+    margin-right: 0.25rem;
+}
+
+.rs-btn.rs-btn-disabled {
+    opacity: 0.5;
+}
+
+hr {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}

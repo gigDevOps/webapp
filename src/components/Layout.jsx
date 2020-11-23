@@ -1,0 +1,256 @@
+import React, {useEffect, useState} from "react";
+import styled from "styled-components";
+import Logo from "../interface/Logo";
+import _ from "lodash";
+import CompanySelector from "../interface/CompanySelector";
+import Avatar from "react-avatar";
+import {endOfDay, format, startOfDay} from "date-fns";
+import VerticalMenu from "../interface/Menu/VerticalMenu";
+import { AiOutlineDashboard, AiOutlineLayout, AiOutlineUser, AiOutlineLogin,
+    AiOutlineNodeCollapse, AiOutlineClockCircle } from 'react-icons/ai';
+import {useDispatch, useSelector} from "react-redux";
+import {fetch} from "../actions/generics";
+import { ROLE_GROUPS } from "../permissions";
+import UpdateTemporaryPassword from "./UpdateTemporaryPassword";
+import {NavLink} from "react-router-dom";
+import {useModal} from "react-modal-hook";
+import GModal from "../interface/GModal"
+import InOutWebcam from "./fragments/InOutWebcam";
+import {Button, Icon} from "rsuite";
+
+const menu = [
+    { text: 'Dashboard', path: '/', icon: <AiOutlineDashboard /> },
+    {
+        text: 'Activities',
+        path: '/activities',
+        perm: ROLE_GROUPS.WORKER,
+        icon: <AiOutlineNodeCollapse />,
+    },
+    {
+        text: 'Timesheets', path: '/timesheets', icon: <AiOutlineClockCircle />,
+        perm: ROLE_GROUPS.WORKER
+    },
+    {
+        text: 'Schedules',
+        path: '/schedules',
+        icon: <AiOutlineLayout />,
+        perm: ROLE_GROUPS.WORKER,
+    },
+    {
+        text: 'Workforce',
+        path: '/workforce',
+        perm: ROLE_GROUPS.SUPERVISOR,
+        icon: <AiOutlineUser />,
+        nodes: [
+            {
+                text: 'Employees',
+                path: '/workforce/employees',
+                perm: ROLE_GROUPS.SUPERVISOR,
+            },
+            {
+                text: 'Locations', path: '/workforce/locations',
+                perm: ROLE_GROUPS.SUPERVISOR,
+            },
+            {
+                text: 'Positions (Roles)', path: '/workforce/roles',
+                perm: ROLE_GROUPS.SUPERVISOR,
+            }
+        ]
+    },
+    /*
+    {
+        text: 'Temporary Workforce',
+        path: '/temps',
+        perm: ROLE_GROUPS.SUPERVISOR,
+        icon: <AiOutlineUsergroupAdd />,
+        nodes: [
+            { text: 'Candidate Pools', path: '/temps/candidate-pools', perm: ROLE_GROUPS.SUPERVISOR},
+            { text: 'Current Assignments', path: '/temps/current-assignments', perm: ROLE_GROUPS.SUPERVISOR},
+            { text: 'Active Jobs', path: '/temps/active-jobs', perm: ROLE_GROUPS.SUPERVISOR}
+        ]
+    },
+    { text: 'Reports', path: '/reports', icon: <AiOutlineFund />, perm: ROLE_GROUPS.SUPERVISOR }
+     */
+];
+
+const adminMenu = [
+    //{text: 'Payments', path: '/settings/payments', perm: ROLE_GROUPS.ADMIN},
+    //{text: 'Integrations', path: '/settings/integrations', perm: ROLE_GROUPS.ADMIN},
+    {text: 'Members', path: '/settings/members', perm: ROLE_GROUPS.ADMIN},
+    {text: 'Settings', path: '/settings', perm: ROLE_GROUPS.ADMIN}
+]
+
+export default function ({ children }) {
+    const user = useSelector((store) => store.user.data);
+    const [rosters, setRosters] = useState([]);
+    const [isFetchingRosters, setIsFetchingRosters] = useState(true);
+    const dispatch = useDispatch();
+    const start = startOfDay(new Date());
+    const end = endOfDay(start);
+
+    const [ showClockInOutModal, hideClockInOutModal ] = useModal(() => {
+        const formatDateTitle =  'ccc, dd MMM p';
+        return (
+            <GModal mStyle={{minWidth: '40vw'}} onClose={hideClockInOutModal} autoResize title="Time Tracker" help={format(new Date(), formatDateTitle)}>
+                <InOutWebcam current_user={user} />
+            </GModal>
+        )
+    });
+
+    useEffect(() => {
+        dispatch(fetch('user', '/user'));
+        dispatch(fetch('clock-in-out-layout', '/rosters', {
+            start, end, onlyCurrentUser: true, limit: 1
+        }, (res) => {
+            setIsFetchingRosters(false);
+            setRosters(res.rosters.pop());
+        }));
+        // showClockInOutModal();
+    }, [dispatch]);
+
+    if(!user || !user.tenant || !user.roles) return <p>Loading user...</p>;
+
+    const name = [user.first_name, user.last_name].join(" ");
+    if(user.is_password_temporary) return <UpdateTemporaryPassword user={user} />;
+
+    return(
+        <LayoutWrapper>
+            <LayoutContents>
+                <LayoutMenu>
+                    <div style={{width: "20rem", display: 'flex', alignItems: 'center'}}>
+                        <Logo />
+                    </div>
+                    <div style={{flexGrow: 1, cursor: 'pointer', fontSize: '1.25rem', display: 'flex',
+                        color: '#555555', paddingRight: '1rem', justifyContent: 'flex-end'}}>
+                        {
+                            rosters && _.get(rosters, 'shift_clock_in_time', null) && !_.get(rosters, 'shift_clock_out_time', null) && (
+                                <Button appearance="primary" size="sm" color="orange" onClick={showClockInOutModal}>
+                                    <Icon icon="arrow-circle-left" /> Check-out
+                                </Button>
+                            )
+                        }
+                        {
+                            rosters && !_.get(rosters, 'shift_clock_in_time', null) && !_.get(rosters, 'shift_clock_out_time', null) && (
+                                <Button appearance="primary" size="sm" color="green" onClick={showClockInOutModal}>
+                                    <Icon icon="arrow-circle-right" /> Check-in
+                                </Button>
+                            )
+                        }
+                        {
+                            rosters && _.get(rosters, 'shift_clock_in_time', null) && _.get(rosters, 'shift_clock_out_time', null) && (
+                                <Button appearance="ghost" size="sm" color="green" disabled={true} style={{ opacity: 1}}>
+                                    <Icon icon="warning" /> No shift available
+                                </Button>
+                            )
+                        }
+                    </div>
+                    <CompanySelector name={user.tenant.organization_name} />
+                </LayoutMenu>
+                <LayoutMain>
+                <LayoutSidebar>
+                    <SidebarBlockMenuItem>
+                            <Avatar name={name} size={36} round />
+                            <p>
+                                <NavLink to={"/settings/profile"}>
+                                {[user.first_name, user.other_names].join(" ")}
+                                <br /> <small>{user.email}</small>
+                                </NavLink>
+                            </p>
+                    </SidebarBlockMenuItem>
+                    <VerticalMenu menu={menu} perms={user.roles}/>
+                    {
+                        user.roles.includes("ROLE_ADMIN") && (
+                     <>
+                     <SidebarMenuGroupTitle>Administration</SidebarMenuGroupTitle>
+                     <VerticalMenu menu={adminMenu} perms={user.roles} />
+                     </>
+                        )
+                    }
+                </LayoutSidebar>
+                <LayoutInnerContents>
+                    <div style={{padding: "1rem"}}>
+                        {children}
+                    </div>
+                    <div style={{fontSize: '0.8rem', width: "100%", background: "#ffffff", padding: "1rem"}}>
+                        <p>Copyright © 2020 Gigsasa. All rights reserved.</p>
+                    </div>
+                </LayoutInnerContents>
+                </LayoutMain>
+            </LayoutContents>
+        </LayoutWrapper>
+    )
+}
+
+const SidebarMenuGroupTitle = styled.p`
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    padding-left: 1rem;
+    opacity: 0.5;
+    text-shadow: 1px 0px #111;
+    padding-top: 1.5rem;
+    color: #ffffff;
+`
+
+
+
+const LayoutWrapper = styled.div`
+    display: flex;
+ `
+const LayoutSidebar = styled.div`   
+    min-height: 100vh;
+    border-right: 1px solid #d5d6d5;
+    width: 15vw;
+    background: #203160;
+`
+
+const LayoutContents = styled.div`
+    flex-grow: 1;
+`
+
+const LayoutInnerContents = styled.div`
+    position: relative;
+    flex-grow: 1;
+    width: 75vw;
+    display: flex;
+    flex-direction: column;
+`
+
+const LayoutMenu = styled.div`
+    width: 100%;
+    display: flex;
+    max-height: 4.5rem;
+    min-height: 4.5rem;
+    border-bottom: 1px solid #d5d6d5;
+    z-index: 1;
+    background: #ffffff;
+    align-items: center;
+    padding: 0.75rem 0;
+`
+
+const LayoutMain = styled.div`
+    display: flex;
+`
+
+const SidebarBlockMenuItem = styled.div`
+    display: flex;
+    align-items: center;
+    font-size: 90%;    
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #d5d6d5;
+    padding: 1.5rem 1rem;
+    background: #172447;
+    
+    
+    a {
+        color: #ffffff;
+    }
+    
+    p {
+        margin: 0 1rem;
+    }
+    small {
+        font-size: 0.8rem;
+        color: #999;
+        
+    }
+`
