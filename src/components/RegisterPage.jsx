@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Redirect, Link, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
+import { useForm } from "react-hook-form";
+import { yupResolver } from '@hookform/resolvers';
+import * as yup from "yup";
 import { useAuthContext } from '../context/auth';
 import {APIClient} from '../services/APIClient';
 import {H1} from "../interface/paragraph/Titles";
 
 import bgLogin from "./../interface/assets/login-background.jpg";
 import Button from "../interface/Button";
+
+const schema = yup.object().shape({
+    email: yup.string().email().required(),
+    reEmail: yup.string().email().oneOf([yup.ref('email'), null], "emails do not match").required(),
+    password: yup.string().required()
+});
 
 /**
  * @description Assemble inputs to form a registerForm
@@ -15,36 +24,22 @@ export default function () {
     const authContext = useAuthContext();
     const history = useHistory();
 
-    const [formValues, setValue] = useState({
-        email: '',
-        reEmail: '',
-        password: ''
+    const { register, handleSubmit, errors } = useForm({
+        resolver: yupResolver(schema)
     });
 
-    /**
-     * @description Respond to onChange event in form
-     * @param {*} e Event
-     */
-    function handleFormInput(e) {
-        e.preventDefault();
-
-        if (authContext.authState.error) clearRegisterErrors();
-
-        setValue({
-            ...formValues,
-            [e.target.name]: e.target.value,
-        });
+    const moveOn = () => {
+        authContext.onRegisterSuccess();
+        history.push("/login");
+        alert("Please check your email for account confirmation!");
     }
-
-    const moveOn = () => {authContext.onRegisterSuccess(); history.push("/login");}
 
     /**
      * @description Respond to onSubmit event in form
      * @param {*} e
      */
-    async function handleFormSubmit(e) {
-        e.preventDefault();
-        const { email, password } = formValues;
+    async function onSubmit(data) {
+        const { email, password } = data;
 
         try {
             if (email && password) {
@@ -80,15 +75,7 @@ export default function () {
             });
     }
 
-    /**
-     * @description Clear errors
-     */
-    function clearRegisterErrors() {
-        authContext.onRegisterFailure(null);
-    }
-
     const { user, error } = authContext.authState;
-    const { email, reEmail, password } = formValues;
 
     if (!user) {
         sessionStorage.clear();
@@ -101,7 +88,7 @@ export default function () {
                 <LoginFormContainer>
                     <header>
                         {error ? (
-                            <H1>Error</H1>
+                            <H1>An error occurred</H1>
                         ) : (
                             <>
                                 <H1>Hi! Welcome</H1>
@@ -110,40 +97,39 @@ export default function () {
                         )}
                     </header>
 
-                    <form autoComplete="noop" onSubmit={(e) => handleFormSubmit(e)}>
+                    <form onSubmit={handleSubmit(onSubmit)} autoComplete="noop">
                         <input
                             type="email"
-                            value={email}
                             className="focus:outline-none"
                             placeholder="Enter your email ID"
                             name="email"
-                            onChange={(e) => handleFormInput(e)}
+                            ref={register}
                         />
-
+                        <p>{errors.email?.message}</p>
                         <input
                             type="email"
-                            value={reEmail}
                             className="focus:outline-none"
                             placeholder="Confirm your email ID"
                             name="reEmail"
-                            onChange={(e) => handleFormInput(e)}
+                            ref={register}
                         />
-                        {
+                        <p>{errors.reEmail?.message}</p>
+                        {/* {
                             email.length>0 && reEmail.length>0 && email !== reEmail
                                 &&
                                     <span>Emails should match!</span>
-                        }
+                        } */}
                         <input
                             type="password"
-                            value={password}
                             className="focus:outline-none"
                             placeholder="Enter your password"
                             name="password"
-                            onChange={(e) => handleFormInput(e)}
+                            ref={register}
                         />
+                        <p>{errors.password?.message}</p>
                         <Button
                             className="focus:outline-none"
-                            onClick={(e) => handleFormSubmit(e)}
+                            type="submit"
                         >Sign up</Button>
                         <small style={{paddingRight: '1rem', textAlign: 'right'}}>Already have an account?
                             <Link className={styles.link} to="/login"> Sign in</Link>

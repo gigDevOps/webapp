@@ -63,8 +63,8 @@ export default function AddEmployee({ onCancel, onSuccess, ...props}) {
             <form onSubmit={handleSubmit(onSubmit)} autoComplete="none">
                 <InputGroup label="Name">
                     <input type="text" autoComplete="none" placeholder="First name" name="first_name" ref={register} />
-                    <input type="text" autoComplete="none" placeholder="Other names" name="other_names" ref={register} />
                     <p>{errors.first_name?.message}</p>
+                    <input type="text" autoComplete="none" placeholder="Other names" name="other_names" ref={register} />
                     <p>{errors.other_names?.message}</p>
                 </InputGroup>
                 <InputGroup label="Mobile Phone Number">
@@ -93,10 +93,6 @@ export default function AddEmployee({ onCancel, onSuccess, ...props}) {
                     }
                     <p>{errors.role_id?.message}</p>
                 </InputGroup>
-                {/* <InputGroup label="Role">
-                    <input type="text" autoComplete="none" placeholder="Role" name="role" ref={register} />
-                    <p>{errors.role?.message}</p>
-                </InputGroup> */}
                 <InputGroup label="Department" tooltip="Select the relevant department">
                     { isFetchingDepartments && <p>Loading departments...</p> }
                     {
@@ -112,10 +108,6 @@ export default function AddEmployee({ onCancel, onSuccess, ...props}) {
                     }
                     <p>{errors.dept_id?.message}</p>
                 </InputGroup>
-                {/* <InputGroup label="Department">
-                    <input type="text" autoComplete="none" placeholder="Department" name="dept" ref={register} />
-                    <p>{errors.dept?.message}</p>
-                </InputGroup> */}
                 <InputGroup label="Active account">
                     <input type="checkbox" name="enabled" ref={register} />
                 </InputGroup>

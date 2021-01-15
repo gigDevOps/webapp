@@ -3,10 +3,18 @@ import { Redirect, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import moment from 'moment';
 import { useAuthContext } from '../context/auth';
+import { useForm } from "react-hook-form";
+import { yupResolver } from '@hookform/resolvers';
+import * as yup from "yup";
 import {APIClient} from '../services/APIClient';
 import {H1} from "../interface/paragraph/Titles";
 import bgLogin from "./../interface/assets/login-background.jpg";
 import Button from "../interface/Button";
+
+const schema = yup.object().shape({
+    email: yup.string().email().required(),
+    password: yup.string().required()
+});
 
 /**
  * @description Assemble inputs to form a loginForm
@@ -14,34 +22,17 @@ import Button from "../interface/Button";
 export default function () {
     const authContext = useAuthContext();
 
-    const [formValues, setValue] = useState({
-        email: '',
-        password: '',
+    const { register, handleSubmit, errors } = useForm({
+        resolver: yupResolver(schema)
     });
-
-    /**
-     * @description Respond to onChange event in form
-     * @param {*} e Event
-     */
-    function handleFormInput(e) {
-        e.preventDefault();
-
-        if (authContext.authState.error) clearLoginErrors();
-
-        setValue({
-            ...formValues,
-            [e.target.name]: e.target.value,
-        });
-    }
 
     /**
      * @description Respond to onSubmit event in form
      * @param {*} e
      */
-    async function handleFormSubmit(e) {
-        e.preventDefault();
-        const { email, password } = formValues;
-
+    async function onSubmit(data) {
+        const { email, password } = data;
+        console.log({ email, password });
         try {
             if (email && password) {
                 await authContext.onLoginRequest();
@@ -81,15 +72,7 @@ export default function () {
             });
     }
 
-    /**
-     * @description Clear errors
-     */
-    function clearLoginErrors() {
-        authContext.onLoginFailure(null);
-    }
-
     const { user, error } = authContext.authState;
-    const { email, password } = formValues;
 
     if (!user) {
         sessionStorage.clear();
@@ -102,7 +85,7 @@ export default function () {
                 <LoginFormContainer>
                     <header>
                         {error ? (
-                            <H1>Error</H1>
+                            <H1>An error occurred</H1>
                         ) : (
                             <>
                                 <H1>Hi! Welcome</H1>
@@ -111,30 +94,29 @@ export default function () {
                         )}
                     </header>
 
-                    <form autoComplete="noop" onSubmit={(e) => handleFormSubmit(e)}>
+                    <form onSubmit={handleSubmit(onSubmit)} autoComplete="noop">
                         <input
-                            type="text"
-                            value={email}
+                            type="email"
                             className="focus:outline-none"
                             placeholder="Enter your email"
                             name="email"
-                            onChange={(e) => handleFormInput(e)}
+                            ref={register}
                         />
-
+                        <p>{errors.email?.message}</p>
                         <input
                             type="password"
-                            value={password}
                             className="focus:outline-none"
                             placeholder="Enter your password"
                             name="password"
-                            onChange={(e) => handleFormInput(e)}
+                            ref={register}
                         />
+                        <p>{errors.password?.message}</p>
                         <small style={{paddingRight: '1rem', textAlign: 'right'}}>
                             <Link className={styles.link} to="/forgot-password">Forgot password?</Link>
                         </small>
                         <Button
                             className="focus:outline-none"
-                            onClick={(e) => handleFormSubmit(e)}
+                            type="submit"
                         >
                             Sign in
                         </Button>
