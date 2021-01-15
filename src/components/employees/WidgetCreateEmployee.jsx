@@ -1,6 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
 import {useForm} from "react-hook-form";
+import {useSelector} from 'react-redux';
+import { create } from "../../actions/generics";
 
 export default function WidgetCreateEmployee({full_name}) {
     const guessName = full_name.split(' ');
@@ -18,6 +20,7 @@ export default function WidgetCreateEmployee({full_name}) {
         console.log(data);
         // onCancel();
     }
+
     return(
         <>
             <p>Create a new employee</p>

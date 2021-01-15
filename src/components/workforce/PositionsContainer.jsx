@@ -11,8 +11,8 @@ import GModal from "../../interface/GModal";
 import PositionCreate from "../fragments/PositionCreate";
 
 export default function PostionsContainer() {
-    const positions = useSelector((store) => store.positions.data);
-    const isFetchingPositions = useSelector((store) => store.positions.isFetching);
+    const positions = useSelector((store) => store.roles.data);
+    const isFetchingPositions = useSelector((store) => store.roles.isFetching);
     const dispatch = useDispatch();
     const [showPositionsCreation, hidePositionCreation] = useModal(() => (
         <GModal onClose={hidePositionCreation} autoResize>

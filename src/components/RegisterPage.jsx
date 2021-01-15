@@ -1,22 +1,24 @@
 import React, { useState } from 'react';
-import { Redirect, Link } from 'react-router-dom';
+import { Redirect, Link, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import moment from 'moment';
 import { useAuthContext } from '../context/auth';
 import {APIClient} from '../services/APIClient';
 import {H1} from "../interface/paragraph/Titles";
+
 import bgLogin from "./../interface/assets/login-background.jpg";
 import Button from "../interface/Button";
 
 /**
- * @description Assemble inputs to form a loginForm
+ * @description Assemble inputs to form a registerForm
  */
 export default function () {
     const authContext = useAuthContext();
+    const history = useHistory();
 
     const [formValues, setValue] = useState({
         email: '',
-        password: '',
+        reEmail: '',
+        password: ''
     });
 
     /**
@@ -26,13 +28,15 @@ export default function () {
     function handleFormInput(e) {
         e.preventDefault();
 
-        if (authContext.authState.error) clearLoginErrors();
+        if (authContext.authState.error) clearRegisterErrors();
 
         setValue({
             ...formValues,
             [e.target.name]: e.target.value,
         });
     }
+
+    const moveOn = () => {authContext.onRegisterSuccess(); history.push("/login");}
 
     /**
      * @description Respond to onSubmit event in form
@@ -44,17 +48,12 @@ export default function () {
 
         try {
             if (email && password) {
-                await authContext.onLoginRequest();
+                await authContext.onRegisterRequest();
 
-                const res = await APIClient.login({ email, password });
+                const res = await APIClient.register({ email, password });
                 res && res.status === 200
-                    ? authContext.onLoginSuccess({
-                        ...res.data.user,
-                        token: res.data.access_token,
-                        refreshToken: res.data.refresh_token,
-                        expiresAt: moment(new Date()).add(res.data.expires_at, 'seconds'),
-                    })
-                    : handleError({ message: 'CREDENTIALS_INVALID', status: res.status });
+                    ? moveOn()
+                    : handleError(res);
                 return;
             }
         } catch (err) {
@@ -68,14 +67,14 @@ export default function () {
      */
     function handleError(err) {
         err.response && err.response.status
-            ? authContext.onLoginFailure({
+            ? authContext.onRegisterFailure({
                 status: err.response.status,
                 message:
                     err.response.status === 401
                         ? 'CREDENTIALS_INVALID'
-                        : err.response.statusText,
+                        : err.response.message,
             })
-            : authContext.onLoginFailure({
+            : authContext.onRegisterFailure({
                 status: 500,
                 message: 'NO_RESPONSE',
             });
@@ -84,12 +83,12 @@ export default function () {
     /**
      * @description Clear errors
      */
-    function clearLoginErrors() {
-        authContext.onLoginFailure(null);
+    function clearRegisterErrors() {
+        authContext.onRegisterFailure(null);
     }
 
     const { user, error } = authContext.authState;
-    const { email, password } = formValues;
+    const { email, reEmail, password } = formValues;
 
     if (!user) {
         sessionStorage.clear();
@@ -106,21 +105,34 @@ export default function () {
                         ) : (
                             <>
                                 <H1>Hi! Welcome</H1>
-                                <p>Please enter your credentials</p>
+                                <p>Please enter your email and password to register.</p>
                             </>
                         )}
                     </header>
 
                     <form autoComplete="noop" onSubmit={(e) => handleFormSubmit(e)}>
                         <input
-                            type="text"
+                            type="email"
                             value={email}
                             className="focus:outline-none"
-                            placeholder="Enter your email"
+                            placeholder="Enter your email ID"
                             name="email"
                             onChange={(e) => handleFormInput(e)}
                         />
 
+                        <input
+                            type="email"
+                            value={reEmail}
+                            className="focus:outline-none"
+                            placeholder="Confirm your email ID"
+                            name="reEmail"
+                            onChange={(e) => handleFormInput(e)}
+                        />
+                        {
+                            email.length>0 && reEmail.length>0 && email !== reEmail
+                                &&
+                                    <span>Emails should match!</span>
+                        }
                         <input
                             type="password"
                             value={password}
@@ -129,17 +141,12 @@ export default function () {
                             name="password"
                             onChange={(e) => handleFormInput(e)}
                         />
-                        <small style={{paddingRight: '1rem', textAlign: 'right'}}>
-                            <Link className={styles.link} to="/forgot-password">Forgot password?</Link>
-                        </small>
                         <Button
                             className="focus:outline-none"
                             onClick={(e) => handleFormSubmit(e)}
-                        >
-                            Sign in
-                        </Button>
-                        <small style={{paddingRight: '1rem', textAlign: 'right'}}>Don't have an account?
-                            <Link className={styles.link} to="/register"> Sign up</Link>
+                        >Sign up</Button>
+                        <small style={{paddingRight: '1rem', textAlign: 'right'}}>Already have an account?
+                            <Link className={styles.link} to="/login"> Sign in</Link>
                         </small>
                     </form>
                     <div className="flex h-full items-center justify-center">

@@ -130,7 +130,6 @@ export function fetch(
 
         try {
             const res = await APIClient.get(path, { params });
-
             if (res && res.status === 200) {
                 dispatch(fetchSuccess(res.data[stateName], stateName));
                 onSuccess(res.data);
@@ -165,6 +164,7 @@ export function create(
 
         try {
             const res = await APIClient.post(path, resource);
+            console.log({res});
             if (res && res.status === 200) {
                 onSuccess(res);
                 await dispatch(postSuccess(res.data[resource], stateName));

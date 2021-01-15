@@ -8,6 +8,9 @@ import React, {
 import { encryptValue, decryptValue } from './encryptor';
 import authReducer, { INIT_AUTH_STATE } from '../reducers/auth';
 import {
+    registerRequest,
+    registerSuccess,
+    registerFailure,
     loginRequest,
     loginSuccess,
     loginFailure,
@@ -23,13 +26,36 @@ export default function AuthContextProvider(props) {
     const cachedState = decryptValue(sessionStorage.getItem('auth'));
     const [authState, dispatch] = useReducer(
         authReducer,
-        cachedState || INIT_AUTH_STATE,
+        cachedState || INIT_AUTH_STATE
     );
 
     // Replace cached state whenever authState is updated
     useEffect(() => {
         sessionStorage.setItem('auth', encryptValue(authState));
     }, [authState]);
+
+    /**
+     * @description Indicate that a request for register
+     * is being processed
+     * @param {boolean} status Indicates status of register request
+     * [true if in progress, false if completed]
+     */
+    function onRegisterRequest() {
+        dispatch(registerRequest());
+    }
+
+    async function onRegisterSuccess() {
+        dispatch(registerSuccess());
+    }
+
+    /**
+     * @description Add error to authContext
+     * on failed register
+     * @param {object} error
+     */
+    function onRegisterFailure(error) {
+        dispatch(registerFailure(error));
+    }
 
     /**
      * @description Indicate that a request for login
@@ -86,6 +112,9 @@ export default function AuthContextProvider(props) {
      */
     const auth = useMemo(
         () => ({
+            onRegisterRequest,
+            onRegisterSuccess,
+            onRegisterFailure,
             onLoginRequest,
             onLoginSuccess,
             onLoginFailure,

@@ -1,4 +1,7 @@
 import {
+    REGISTER_REQUEST,
+    REGISTER_SUCCESS,
+    REGISTER_ERROR,
     LOGIN_REQUEST,
     LOGIN_SUCCESS,
     LOG_OUT,
@@ -18,6 +21,22 @@ export const INIT_AUTH_STATE = {
  */
 export default function authReducer(prevState = INIT_AUTH_STATE, action) {
     switch (action.type) {
+        case REGISTER_REQUEST:
+            return { ...prevState, isFetching: true };
+
+        case REGISTER_SUCCESS:
+            return {
+                ...prevState,
+                isFetching: false
+            };
+
+        case REGISTER_ERROR:
+            return {
+                ...prevState,
+                isFetching: false,
+                error: action.error,
+            };
+
         case LOGIN_REQUEST:
             return { ...prevState, isFetching: true };
 

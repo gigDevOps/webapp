@@ -17,6 +17,8 @@ import DatePicker from '../../interface/DatePicker/DatePicker';
 import { CGridBlock, CGridWrapper } from "../../interface/Scheduler/CGrid";
 import LoadingView from "../../interface/LoadingView";
 import AddEmployee from "../fragments/AddEmployee";
+import CreateDepartment from "../fragments/DepartmentCreate";
+import CreateQuestion from "../fragments/QuestionCreate";
 import ShiftContainer from "./ShiftContainer";
 import GModal from "../../interface/GModal";
 import {ActionBar} from "../../interface/ActionBar";
@@ -64,6 +66,18 @@ export default function SchedulesContainer() {
             end: moment(period.end).format()
         }));
     }
+
+    const [showCreateDepartment, hideCreateDepartment] = useModal(() => (
+        <GModal title="Create a new department" onClose={hideCreateDepartment} autoResize>
+            <CreateDepartment onSuccess={hideCreateDepartment} onFailure={()=>{}} />
+        </GModal>
+    ));
+
+    const [showCreateQuestion, hideCreateQuestion] = useModal(() => (
+        <GModal title="Create new questions" onClose={hideCreateQuestion} autoResize>
+            <CreateQuestion onSuccess={hideCreateQuestion} onFailure={()=>{}} />
+        </GModal>
+    ));
 
     const [showCreateShift, hideCreateShift] = useModal(() => (
         <GModal title="Create a new shift" onClose={hideCreateShift}>
@@ -183,6 +197,8 @@ export default function SchedulesContainer() {
                     />
                 </div>
                 <div>
+                    <Button style={{ marginRight: '0.5rem'}} appearance="primary" color="red" size="md" onClick={showCreateQuestion}>Create questions</Button>
+                    <Button style={{ marginRight: '0.5rem'}} appearance="primary" color="green" size="md" onClick={showCreateDepartment}>Create department</Button>
                     <Button style={{ marginRight: '0.5rem'}} appearance="primary" size="md" onClick={showCreateShift}>Create shifts</Button>
                     <Button size="md" appearance="primary" color="blue" onClick={() => showCreateEmployee()}>Add employee</Button>
                 </div>

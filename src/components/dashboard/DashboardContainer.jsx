@@ -16,15 +16,21 @@ const formatDateTitle =  'ccc, MMM dd, yyyy';
 export default function DashboardContainer() {
     const startDayOfMonth = startOfWeek(new Date());
     const endDayOfMonth = endOfWeek(new Date());
-    const dashboard = useSelector((store) => store.dashboard.data);
+    // const dashboard = useSelector((store) => store.dashboard.data);
+    const dashboard = {
+        upcomings: [],
+        charts: {
+            month: []
+        }
+    };
     const isFetchingDashboard = useSelector((store) => store.dashboard.isFetching);
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(fetch('dashboard', '/dashboard'));
+        // dispatch(fetch('dashboard', '/dashboard'));
     }, [dispatch]);
 
-    if(isFetchingDashboard || (typeof dashboard === "undefined") || !dashboard.charts) return <p>Loading dashboard...</p>;
+    // if(isFetchingDashboard || (typeof dashboard === "undefined") || !dashboard.charts) return <p>Loading dashboard...</p>;
 
     const data = {
         useResizeHandler: true,
@@ -55,7 +61,7 @@ export default function DashboardContainer() {
             <PageTitle title={"Dashboard"} sub={subtitle} />
             <GroupCardsStats stats={get(dashboard, 'stats', [])} />
             <div style={{display: 'flex', flexWrap: 'wrap'}}>
-                <Card title="Current Week (hours)" width="35%" right={<NavLink to={"/timesheets"}>View Report ></NavLink>}>
+                <Card title="Current Week (hours)" width="35%" right={<NavLink to={"/timesheets"}>View Report</NavLink>}>
                     <Plot {...data} />
                 </Card>
                 <Card title="Current month (hours)" width="30%">
@@ -78,12 +84,12 @@ export default function DashboardContainer() {
                         </tbody>
                     </SimpleTable>
                 </Card>
-                <Card title="Upcoming shifts" width="35%" right={<NavLink to={"/schedules"}>View Schedule ></NavLink>}>
+                <Card title="Upcoming shifts" width="35%" right={<NavLink to={"/schedules"}>View Schedule</NavLink>}>
                     <UpcomingShifts shifts={dashboard.upcomings} />
                 </Card>
             </div>
             <Card title="Recent Activity Logs" hasPadding={false}>
-                <ActivityLogWidget showTitle={false} hasExternalPadding={false} hasToBeFetched={true} />
+                {/* <ActivityLogWidget showTitle={false} hasExternalPadding={false} hasToBeFetched={true} /> */}
             </Card>
         </div>
     )

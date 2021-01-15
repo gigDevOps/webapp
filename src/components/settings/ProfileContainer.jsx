@@ -11,6 +11,7 @@ import Card from "../../interface/Card/Card";
 import {InputGroup} from "../../interface/forms/InputGroup";
 import {useForm} from "react-hook-form";
 import {APIClient, BASE_API_URL} from "../../services/APIClient";
+import LoadingPage from "../LoadingPage";
 
 export default function ProfileContainer() {
     const user = useSelector((state) => state.user.data);
@@ -44,7 +45,7 @@ export default function ProfileContainer() {
         </GModal>
     ));
 
-    if(isFetchingUser || !user) return <p>Loading user...</p>;
+    if(isFetchingUser || !user) return <LoadingPage loading={true}/>;
     if(!user.face_ref) {
         showUpdateBiometrics();
     }

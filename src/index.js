@@ -15,7 +15,7 @@ ReactDOM.render(
         <Provider store={store}>
             <AuthContextProvider>
                 <ModalProvider>
-                        <Gigsasa />
+                    <Gigsasa />
                 </ModalProvider>
             </AuthContextProvider>
         </Provider>

@@ -4,6 +4,7 @@ import {yupResolver} from "@hookform/resolvers";
 import {create, fetch} from "../../actions/generics";
 import {InputGroup} from "../../interface/forms/InputGroup";
 import * as yup from "yup";
+import LoadingPage from "../LoadingPage";
 import {useDispatch, useSelector} from "react-redux";
 import {Button} from "rsuite";
 import GoogleMapReact from 'google-map-react';
@@ -24,6 +25,7 @@ export default function LocationCreate({ onSuccess, onFailure}) {
     const [mapsRef, setMapsRef] = useState(null);
     const timezones = useSelector((store) => store.timezones.data);
     const isFetchingTimezones = useSelector((store) => store.timezones.isFetching);
+    const isLocationCreating = useSelector((store)=>store.location.form.isPosting);
 
     const { register, handleSubmit, errors, watch, setValue } = useForm({
         resolver: yupResolver(schema),
@@ -35,12 +37,20 @@ export default function LocationCreate({ onSuccess, onFailure}) {
     const radius = watch('radius', 15);
 
     const onSubmit = (data) => {
-        dispatch(create('location', '/locations', data, onSuccess, onFailure));
+        const formData = new FormData();
+        formData.append("name", data.name);
+        formData.append("address", data.address);
+        formData.append("radius", data.radius);
+        formData.append("timezone_id", data.timezone);
+        dispatch(create('location', '/location', formData, onSuccess, (res)=>{
+            console.log("Create Location error: ", res);
+            onFailure();
+        }));
     }
 
     const getTimezones = () => {
         if(!timezones || timezones.length < 1) {
-            dispatch(fetch('timezones', '/timezones'), {},  () => {
+            dispatch(fetch('timezones', '/timezone'), {},  () => {
                 setValue('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
             });
         }
@@ -114,9 +124,10 @@ export default function LocationCreate({ onSuccess, onFailure}) {
             });
         }
     }, 2000);
-
+    console.log("Fetched Timezones: ", timezones);
     return(
         <>
+            <LoadingPage loading={isLocationCreating} />
             { serverErrors.msg && <p>{serverErrors.msg}</p>}
             <form onSubmit={handleSubmit(onSubmit)} autoComplete="none">
                 <InputGroup label="Name of the Site" tooltip="Choose a name for you location, so you can easily remember it">
@@ -138,7 +149,7 @@ export default function LocationCreate({ onSuccess, onFailure}) {
                                 <select name="timezone" ref={register} >
                                     {
                                         timezones.map((t) => {
-                                            return <option value={t.key}>{t.value}</option>
+                                            return <option value={t.id}>{t.location_name} - {t.timezone}</option>
                                         })
                                     }
                                 </select>

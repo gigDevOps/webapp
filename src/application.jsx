@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import { useAuthContext } from "./context/auth";
 import {Route, Switch, Redirect, BrowserRouter} from "react-router-dom";
 import PropTypes from "prop-types";
@@ -6,6 +6,9 @@ import Layout from "./components/Layout";
 import ROUTES from "./routes";
 import LayoutNoShell from "./components/LayoutNoShell";
 import LoginPage from "./components/LoginPage";
+import RegisterPage from "./components/RegisterPage";
+import LoadingPage from "./components/LoadingPage";
+import ProfileSetupPage from "./components/setup";
 
 
 export default function() {
@@ -16,14 +19,16 @@ export default function() {
         <BrowserRouter>
             <Switch>
                 <RouteItem exact name="login" path="/login" component={LoginPage} layout={LayoutNoShell} perms="" />
+                <RouteItem exact name="register" path="/register" component={RegisterPage} layout={LayoutNoShell} perms="" />
+                <RouteItem exact name="profileSetup" path="/profile-setup" component={ProfileSetupPage} layout={LayoutNoShell} perms="" />
                 {user ? (
                     Object.values(ROUTES).map((res) => (
                         <RouteItem  exact={res.exact || true} key={res.path} name={res.name} path={res.path} component={res.component} perms={res.perms}/>
                     ))
-                ) : (
+                    ) : (
                     <Redirect to="/login" />
                 )}
-                <RouteItem name="not-found" path="*" component={() => <p>Feature coming soon</p>} layout={Layout} perms="" />
+                <RouteItem name="not-found" path="*" component={() => <p>Feature coming soon</p>} layout={Layout} perms={[]} />
             </Switch>
         </BrowserRouter>
     )
@@ -50,7 +55,8 @@ function RouteItem(props) {
                     path={path}
                     render={() => (
                         <Layout>
-                            {isFetching ? <p>Loading...</p> : <Component/>}
+                            <LoadingPage loading={isFetching} />
+                            <Component/>
                         </Layout>
                     )}
                 />

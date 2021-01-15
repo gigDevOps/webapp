@@ -29,9 +29,9 @@ const insertToken = async (config) => {
         sessionStorage.getItem('expiresAt'),
     ).isSameOrBefore(moment(new Date()));
 
-    if (needsRefresh) {
-        return executeSilentRefresh(config);
-    }
+    // if (needsRefresh) {
+    //     return executeSilentRefresh(config);
+    // }
 
     const token = sessionStorage.getItem('token');
     if (!token) {
@@ -85,18 +85,27 @@ const executeSilentRefresh = async (config) => {
 };
 
 export const APIClient = {
-    auth: async ({ username, password }) =>
+    register: async ({ email, password }) =>
         RestClient.post(
-            '/auth/token',
-            qs.stringify({
-                client_id: CLIENT_ID,
-                client_secret: CLIENT_SECRET,
-                grant_type: 'password',
-                username,
-                password,
-            }),
+            '/register',
             {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                email,
+                password,
+            },
+            {
+                'Content-Type': 'application/json',
+            },
+        ),
+
+    login: async ({ email, password }) =>
+        RestClient.post(
+            '/login',
+            {
+                email,
+                password,
+            },
+            {
+                'Content-Type': 'application/json',
             },
         ),
 

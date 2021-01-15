@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import PropTypes from "prop-types";
 import {useForm, Controller} from "react-hook-form";
-import _ from "lodash";
+import _, { toInteger } from "lodash";
 
 import {InputGroup} from "../../interface/forms/InputGroup";
 import Autoselect from "../../interface/forms/Autoselect";
@@ -21,8 +21,8 @@ export default function AddShifts({onCreation, afterCreation, onCancel}) {
     const isFetchingEmployees = useSelector((store) => store.employees.isFetching);
     const locations = useSelector((store) => store.locations.data);
     const isFetchingLocations = useSelector((store) => store.locations.isFetching);
-    const positions = useSelector((store) => store.positions.data);
-    const isFetchingPositions = useSelector((store) => store.positions.isFetching);
+    const roles = useSelector((store) => store.roles.data);
+    const isFetchingRoles = useSelector((store) => store.roles.isFetching);
     const timezones = useSelector((store) => store.timezones.data);
     const isFetchingTimezones = useSelector((store) => store.timezones.isFetching);
 
@@ -41,17 +41,56 @@ export default function AddShifts({onCreation, afterCreation, onCancel}) {
         terminationTime, repeatPattern, timezone,
         untilWhen, RSun, RMon, RTue, RWed, RThu, RFri, RSat
     } = watch();
+    const employees = watch("employees");
 
     const onSubmit = data => {
-        dispatch(create('shifts', '/shifts', data, () => {
+        // beginningDate: "2021-01-12"
+        // beginningTime: "21:07"
+        // employees: []
+        // hasTemporaryWorkers: false
+        // hours: "8"
+        // locations: null
+        // nemployees: "1"
+        // positions: null
+        // repeatPattern: undefined
+        // repeatable: "no"
+        // terminationDate: "nextDay"
+        // terminationTime: "05:07"
+        // timezone: ""
+        const finalData = {
+            "shift_pattern_id": 1,
+            "user_id": 40,
+            "tenant_id": null,
+            "shiftstarttime": `${data.beginningDate} ${data.beginningTime}`,
+            "shiftendtime": new Date(),
+            "shiftmintime": toInteger(data.hours),
+            "has_temp_workers": data.hasTemporaryWorkers,
+            "is_acknowledged": false,
+            "is_fulfilled": false,
+            "minutes_worked": 0,
+            "has_shift_breaks": true,
+            "shift_break_mins": 30,
+            "shift_ack_time": new Date(),
+            "shift_send_tem_workers_time": new Date(),
+            "shift_ntemporary_workers": toInteger(data.nemployees),
+            "is_started": false,
+            "is_finished": false,
+            "shiftclockintime": new Date(),
+            "shiftclockouttime": new Date(),
+            "shiftbreakintime": new Date(),
+            "shiftbreakouttime": new Date(),
+        };
+        console.log(employees);
+        console.log({finalData});
+        dispatch(create('shifts', '/shifts', finalData, () => {
             afterCreation();
         }))
     }
     useEffect(() => {
         register({name: "employees"});
-        dispatch(fetch("employees", "/employees"));
-        dispatch(fetch("locations", "/locations"));
-        dispatch(fetch("positions", "/positions"));
+        dispatch(fetch("employees", "/candidate_profile"));
+        dispatch(fetch("locations", "/location"));
+        dispatch(fetch("roles", "/role"));
         getTimezones();
     }, [dispatch, register]);
 
@@ -75,7 +114,7 @@ export default function AddShifts({onCreation, afterCreation, onCancel}) {
 
     const getTimezones = () => {
         if(!timezones || timezones.length < 1) {
-            dispatch(fetch('timezones', '/timezones'), {},  () => {
+            dispatch(fetch('timezones', '/timezone'), {},  () => {
                 setValue('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
             });
         }
@@ -118,22 +157,21 @@ export default function AddShifts({onCreation, afterCreation, onCancel}) {
     }) : "";
 
     const employeesOptions = !isFetchingEmployees ? employeesData.map((e) => {
-        return {key: e.id, value: `(${e.ext_ref || e.id.substr(0, 8)}) ${e.first_name} ${e.other_names}`}
+        return {key: e.id, value: `(${e.employee_id || e.id}) ${e.first_name} ${e.other_names}`}
     }) : [];
-    const employees = watch("employees");
 
     const locationsOptions = !isFetchingLocations ? locations.map((e) => {
-        return {key: e.id, value: `(${e.ext_ref || e.id.substr(0, 8)}) ${e.name}`, timezone: e.timezone }
+        return {key: e.id, value: `(${e.id || e.timezone_id.substr(0, 8)}) ${e.name}`, timezone: e.timezone_id }
     }) : [];
 
-    const positionsOptions = !isFetchingPositions ? positions.map((e) => {
-        return {key: e.id, value: `(${e.ext_ref || e.id.substr(0, 8)}) ${e.name}`}
+    const positionsOptions = !isFetchingRoles ? roles.map((e) => {
+        return {key: e.id, value: `(${e.id}) ${e.name}`}
     }) : [];
 
     const [showCreateEmployee, hideCreateEmployee] = useModal(() => (
         <GModal autoResize title="Create a new Employee" onClose={hideCreateEmployee}>
             <AddEmployee onCancel={hideCreateEmployee} onSuccess={() => {
-                dispatch(fetch("employees", "/employees"));
+                dispatch(fetch("employees", "/candidate_profile"));
                 hideCreateEmployee()
             }} />
         </GModal>
@@ -142,7 +180,7 @@ export default function AddShifts({onCreation, afterCreation, onCancel}) {
     const [showCreatePosition, hideCreatePosition] = useModal(() => (
         <GModal autoResize title="Create new position/role" onClose={hideCreatePosition}>
             <PositionCreate onSuccess={() => {
-                dispatch(fetch('positions', '/positions'));
+                dispatch(fetch('roles', '/role'));
                 hideCreatePosition();
             }} />
         </GModal>
@@ -150,12 +188,12 @@ export default function AddShifts({onCreation, afterCreation, onCancel}) {
     const [showCreateLocation, hideCreateLocation] = useModal(() => (
         <GModal title="Create new Location" onClose={hideCreateLocation}>
             <LocationCreate onSuccess={() => {
-                dispatch(fetch('locations', '/locations'));
+                dispatch(fetch('locations', '/location'));
                 hideCreateLocation();
             }} />
         </GModal>
     ));
-
+    
     return (
         <div style={{display: "flex"}}>
             <div style={{width: "65%"}}>
@@ -164,7 +202,7 @@ export default function AddShifts({onCreation, afterCreation, onCancel}) {
                         <input name="nemployees" type="integer" ref={register({require: true})}/>
                         {errors.nemployees && <span>You need to input how many employees for this shift</span>}
                     </InputGroup>
-                    <InputGroup label="Employee" tooltip="Nothing to help">
+                    <InputGroup label="Employee" tooltip="">
                         <Controller
                             as={
                                 <Autoselect
@@ -177,7 +215,7 @@ export default function AddShifts({onCreation, afterCreation, onCancel}) {
                                 />
                             } control={control} name="employees"/>
                     </InputGroup>
-                    <InputGroup label="Locations" tooltip="Nothing to help">
+                    <InputGroup label="Locations" tooltip="">
                         <Controller
                             render={({ onChange }) => (
                                 <Autoselect
@@ -193,7 +231,7 @@ export default function AddShifts({onCreation, afterCreation, onCancel}) {
                                 />
                             )} control={control} name="locations" defaultValue={null}/>
                     </InputGroup>
-                    <InputGroup label="Positions/Roles" tooltip="Nothing to help">
+                    <InputGroup label="Positions/Roles" tooltip="">
                         <Controller
                             as={
                                 <Autoselect
@@ -224,7 +262,7 @@ export default function AddShifts({onCreation, afterCreation, onCancel}) {
                                 <select name="timezone" ref={register} >
                                     {
                                         timezones.map((t) => {
-                                            return <option key={t.key} value={t.key}>{t.value}</option>
+                                            return <option value={t.id}>{t.location_name} - {t.timezone}</option>
                                         })
                                     }
                                 </select>

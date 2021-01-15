@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import styled from "styled-components";
+import {Redirect} from "react-router-dom";
 import Logo from "../interface/Logo";
 import _ from "lodash";
 import CompanySelector from "../interface/CompanySelector";
@@ -17,6 +18,7 @@ import {useModal} from "react-modal-hook";
 import GModal from "../interface/GModal"
 import InOutWebcam from "./fragments/InOutWebcam";
 import {Button, Icon} from "rsuite";
+import LoadingPage from "./LoadingPage";
 
 const menu = [
     { text: 'Dashboard', path: '/', icon: <AiOutlineDashboard /> },
@@ -81,7 +83,9 @@ const adminMenu = [
 ]
 
 export default function ({ children }) {
-    const user = useSelector((store) => store.user.data);
+    const user = useSelector((store) => store.user);
+    const profile = useSelector((store) => store.profile);
+    const company = useSelector((store) => store.company);
     const [rosters, setRosters] = useState([]);
     const [isFetchingRosters, setIsFetchingRosters] = useState(true);
     const dispatch = useDispatch();
@@ -98,7 +102,9 @@ export default function ({ children }) {
     });
 
     useEffect(() => {
-        dispatch(fetch('user', '/user'));
+        dispatch(fetch('user', '/get-user'));
+        dispatch(fetch('profile', '/get-profile'));
+        dispatch(fetch('company', '/get-company'));
         dispatch(fetch('clock-in-out-layout', '/rosters', {
             start, end, onlyCurrentUser: true, limit: 1
         }, (res) => {
@@ -108,11 +114,14 @@ export default function ({ children }) {
         // showClockInOutModal();
     }, [dispatch]);
 
-    if(!user || !user.tenant || !user.roles) return <p>Loading user...</p>;
+    // if(!user || !user.tenant || !user.roles) return <LoadingPage loading={true}/>;
+    if(!user || company.isFetching || profile.isFetching) return <LoadingPage loading={true}/>;
+    
+    if(!company.data || !profile.data) return <Redirect to="/profile-setup" />;
 
-    const name = [user.first_name, user.last_name].join(" ");
+    const name = [profile.data.first_name, profile.data.last_name].join(" ");
     if(user.is_password_temporary) return <UpdateTemporaryPassword user={user} />;
-
+    
     return(
         <LayoutWrapper>
             <LayoutContents>
@@ -144,7 +153,7 @@ export default function ({ children }) {
                             )
                         }
                     </div>
-                    <CompanySelector name={user.tenant.organization_name} />
+                    <CompanySelector name={company.data.company_name} />
                 </LayoutMenu>
                 <LayoutMain>
                 <LayoutSidebar>
@@ -152,20 +161,20 @@ export default function ({ children }) {
                             <Avatar name={name} size={36} round />
                             <p>
                                 <NavLink to={"/settings/profile"}>
-                                {[user.first_name, user.other_names].join(" ")}
+                                {[profile.data.first_name, profile.data.other_names].join(" ")}
                                 <br /> <small>{user.email}</small>
                                 </NavLink>
                             </p>
                     </SidebarBlockMenuItem>
-                    <VerticalMenu menu={menu} perms={user.roles}/>
-                    {
+                    <VerticalMenu menu={menu} perms={user.roles || ["ROLE_ADMIN"]}/>
+                    {/* {
                         user.roles.includes("ROLE_ADMIN") && (
-                     <>
-                     <SidebarMenuGroupTitle>Administration</SidebarMenuGroupTitle>
-                     <VerticalMenu menu={adminMenu} perms={user.roles} />
-                     </>
+                            <>
+                                <SidebarMenuGroupTitle>Administration</SidebarMenuGroupTitle>
+                                <VerticalMenu menu={adminMenu} perms={user.roles || ["ROLE_ADMIN"]} />
+                            </>
                         )
-                    }
+                    } */}
                 </LayoutSidebar>
                 <LayoutInnerContents>
                     <div style={{padding: "1rem"}}>
