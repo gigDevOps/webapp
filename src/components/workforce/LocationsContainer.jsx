@@ -18,7 +18,7 @@ export default function LocationsContainer() {
     const [showCreateLocation, hideCreateLocation] = useModal(() => (
         <GModal title="Create a new site location" onClose={hideCreateLocation}>
             <LocationCreate onCancel={hideCreateLocation} onSuccess={() => {
-                dispatch(fetch('locations', '/locations'));
+                dispatch(fetch('locations', '/location'));
                 hideCreateLocation();
             }} afterCreation={() => {
                 hideCreateLocation();
@@ -28,7 +28,7 @@ export default function LocationsContainer() {
 
     const dispatch = useDispatch();
     useEffect(() => {
-        dispatch(fetch('locations', '/locations'));
+        dispatch(fetch('locations', '/location'));
     }, [dispatch]);
 
     if(!locations) return <p>Loading locations...</p>

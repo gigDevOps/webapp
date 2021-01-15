@@ -17,13 +17,13 @@ export default function PostionsContainer() {
     const [showPositionsCreation, hidePositionCreation] = useModal(() => (
         <GModal onClose={hidePositionCreation} autoResize>
             <PositionCreate onSuccess={() => {
-                dispatch(fetch('positions', '/positions'));
+                dispatch(fetch('roles', '/role'));
                 hidePositionCreation();
-            }} />
+            }} onFailure={()=>{}} />
         </GModal>
     ));
     useEffect(() => {
-        dispatch(fetch('positions', '/positions'));
+        dispatch(fetch('roles', '/role'));
     }, [dispatch]);
     if(!positions) return <p>Loading positions/roles...</p>;
     const columns = [

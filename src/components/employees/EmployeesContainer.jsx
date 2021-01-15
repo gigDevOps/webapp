@@ -21,7 +21,7 @@ const columns = [
         }
     },
     { key: 'role', value: 'Role(s)' },
-    { key: 'phone', value: 'Phone Number'},
+    { key: 'phone_no', value: 'Phone Number'},
     { key: 'email', value: 'Email' },
     { key: 'last_activity', value: 'Last Activity'},
     { key: 'actions', value: 'Actions' }
@@ -33,15 +33,15 @@ export default function EmployeesContainer() {
 
     const dispatch = useDispatch();
     const [showCreateEmployee, hideCreateEmployee] = useModal(() => (
-        <GModal title="Create a new Employee" onClose={hideCreateEmployee}>
+        <GModal title="Create a new Employee" autoResize onClose={hideCreateEmployee}>
             <AddEmployee onCancel={hideCreateEmployee} onSuccess={() => {
-                dispatch(fetch('employees', '/employees'));
+                dispatch(fetch('employees', '/candidate_profile'));
                 hideCreateEmployee();
             }} />
         </GModal>
     ))
     useEffect(() => {
-        dispatch(fetch('employees', '/employees'));
+        dispatch(fetch('employees', '/candidate_profile'));
     }, [dispatch]);
     return(
         <>

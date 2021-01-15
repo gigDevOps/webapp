@@ -15,6 +15,7 @@ import AddEmployee from "../fragments/AddEmployee";
 import GModal from "../../interface/GModal";
 import PositionCreate from "../fragments/PositionCreate";
 import LocationCreate from "../fragments/LocationCreate";
+import LoadingPage from "../LoadingPage";
 
 export default function AddShifts({onCreation, afterCreation, onCancel}) {
     const employeesData = useSelector((store) => store.employees.data);
@@ -25,6 +26,7 @@ export default function AddShifts({onCreation, afterCreation, onCancel}) {
     const isFetchingRoles = useSelector((store) => store.roles.isFetching);
     const timezones = useSelector((store) => store.timezones.data);
     const isFetchingTimezones = useSelector((store) => store.timezones.isFetching);
+    const isShiftCreating = useSelector((store) => store.shift.form.isPosting);
 
     const dispatch = useDispatch();
 
@@ -195,155 +197,158 @@ export default function AddShifts({onCreation, afterCreation, onCancel}) {
     ));
     
     return (
-        <div style={{display: "flex"}}>
-            <div style={{width: "65%"}}>
-                <form key={"AddShiftForm"} onSubmit={handleSubmit(onSubmit)}>
-                    <InputGroup label="No. Employees" tooltip="Number of employees with this shift">
-                        <input name="nemployees" type="integer" ref={register({require: true})}/>
-                        {errors.nemployees && <span>You need to input how many employees for this shift</span>}
-                    </InputGroup>
-                    <InputGroup label="Employee" tooltip="">
-                        <Controller
-                            as={
-                                <Autoselect
-                                    options={employeesOptions}
-                                    isCreatable={true}
-                                    renderCreation={(query) => {
-                                        showCreateEmployee();
-                                    }}
-                                    onChange={onEmployeeChange}
-                                />
-                            } control={control} name="employees"/>
-                    </InputGroup>
-                    <InputGroup label="Locations" tooltip="">
-                        <Controller
-                            render={({ onChange }) => (
-                                <Autoselect
-                                    options={locationsOptions}
-                                    isCreatable={true}
-                                    renderCreation={(query) => {
-                                        showCreateLocation();
-                                    }}
-                                    onChange={(e) => {
-                                        onChange(e);
-                                        onLocationChange(e);
-                                    }}
-                                />
-                            )} control={control} name="locations" defaultValue={null}/>
-                    </InputGroup>
-                    <InputGroup label="Positions/Roles" tooltip="">
-                        <Controller
-                            as={
-                                <Autoselect
-                                    options={positionsOptions}
-                                    isCreatable={true}
-                                    renderCreation={(query) => {
-                                        showCreatePosition();
-                                    }}
-                                    onChange={onPositionChange}
-                                />
-                            } control={control} name="positions" defaultValue={null}/>
-                    </InputGroup>
-                    <InputGroup label="Shift Duration">
-                        <input name="beginningDate" onChange={onIntervalChange} type="date" ref={register({required: true})}/>
-                        <input name="beginningTime" onChange={onIntervalChange} type="time" ref={register({required: true})}/>
-                        to
-                        <select ref={register} onChange={onIntervalChange} name="terminationDate">
-                            <option value="sameDay">Same day</option>
-                            <option value="nextDay">Next day</option>
-                        </select>
-                        <input name="terminationTime" onChange={onIntervalChange} type="time" ref={register({required: true})}/>
-                    </InputGroup>
-                    {errors.beginning && <span>You must select the shift</span>}
-                    <InputGroup label="Timezone" tooltip="Select the timezone for this location">
-                        { isFetchingTimezones && <p>Loading timezones...</p> }
+        <>
+            <LoadingPage loading={isShiftCreating} />
+            <div style={{display: "flex"}}>
+                <div style={{width: "65%"}}>
+                    <form key={"AddShiftForm"} onSubmit={handleSubmit(onSubmit)}>
+                        <InputGroup label="No. Employees" tooltip="Number of employees with this shift">
+                            <input name="nemployees" type="integer" ref={register({require: true})}/>
+                            {errors.nemployees && <span>You need to input how many employees for this shift</span>}
+                        </InputGroup>
+                        <InputGroup label="Employee" tooltip="">
+                            <Controller
+                                as={
+                                    <Autoselect
+                                        options={employeesOptions}
+                                        isCreatable={true}
+                                        renderCreation={(query) => {
+                                            showCreateEmployee();
+                                        }}
+                                        onChange={onEmployeeChange}
+                                    />
+                                } control={control} name="employees"/>
+                        </InputGroup>
+                        <InputGroup label="Locations" tooltip="">
+                            <Controller
+                                render={({ onChange }) => (
+                                    <Autoselect
+                                        options={locationsOptions}
+                                        isCreatable={true}
+                                        renderCreation={(query) => {
+                                            showCreateLocation();
+                                        }}
+                                        onChange={(e) => {
+                                            onChange(e);
+                                            onLocationChange(e);
+                                        }}
+                                    />
+                                )} control={control} name="locations" defaultValue={null}/>
+                        </InputGroup>
+                        <InputGroup label="Positions/Roles" tooltip="">
+                            <Controller
+                                as={
+                                    <Autoselect
+                                        options={positionsOptions}
+                                        isCreatable={true}
+                                        renderCreation={(query) => {
+                                            showCreatePosition();
+                                        }}
+                                        onChange={onPositionChange}
+                                    />
+                                } control={control} name="positions" defaultValue={null}/>
+                        </InputGroup>
+                        <InputGroup label="Shift Duration">
+                            <input name="beginningDate" onChange={onIntervalChange} type="date" ref={register({required: true})}/>
+                            <input name="beginningTime" onChange={onIntervalChange} type="time" ref={register({required: true})}/>
+                            to
+                            <select ref={register} onChange={onIntervalChange} name="terminationDate">
+                                <option value="sameDay">Same day</option>
+                                <option value="nextDay">Next day</option>
+                            </select>
+                            <input name="terminationTime" onChange={onIntervalChange} type="time" ref={register({required: true})}/>
+                        </InputGroup>
+                        {errors.beginning && <span>You must select the shift</span>}
+                        <InputGroup label="Timezone" tooltip="Select the timezone for this location">
+                            { isFetchingTimezones && <p>Loading timezones...</p> }
+                            {
+                                !isFetchingTimezones && timezones && (
+                                    <select name="timezone" ref={register} >
+                                        {
+                                            timezones.map((t) => {
+                                                return <option value={t.id}>{t.location_name} - {t.timezone}</option>
+                                            })
+                                        }
+                                    </select>
+                                )
+                            }
+                            <p>{errors.name?.message}</p>
+                        </InputGroup>
+                        <InputGroup label="Repeat">
+                            <select ref={register} name="repeatable" onChange={onIntervalChange}>
+                                <option value="weekly">Weekly</option>
+                                <option value="no">Never</option>
+                            </select>
+                        </InputGroup>
                         {
-                            !isFetchingTimezones && timezones && (
-                                <select name="timezone" ref={register} >
+                            repeatable !== 'no' && (
+                                <>
+                                    <textarea hidden={true} ref={register} name="repeatPattern" />
+                                <InputGroup label={"Days"}>
                                     {
-                                        timezones.map((t) => {
-                                            return <option value={t.id}>{t.location_name} - {t.timezone}</option>
+                                        ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((e) => {
+                                            return <React.Fragment key={e}>
+                                                <input type="checkbox" onChange={onIntervalChange} name={`R${e}`} ref={register} /> {e}
+                                            </React.Fragment>
                                         })
                                     }
-                                </select>
+                                </InputGroup>
+                                <InputGroup label="Repeat until">
+                                    <input type="date" name="untilWhen" onChange={onIntervalChange} ref={register}/>
+                                </InputGroup>
+                                </>
                             )
                         }
-                        <p>{errors.name?.message}</p>
-                    </InputGroup>
-                    <InputGroup label="Repeat">
-                        <select ref={register} name="repeatable" onChange={onIntervalChange}>
-                            <option value="weekly">Weekly</option>
-                            <option value="no">Never</option>
-                        </select>
-                    </InputGroup>
+
+                        <InputGroup label="Minimum Hours">
+                            <input name="hours" type="integer" ref={register({required: true})}/>
+                        </InputGroup>
+                        {errors.hours && <span className="input-error">You need to set a minimum amount of hours</span>}
+
+                        <InputGroup label="Temporary Workers">
+                            <input type="checkbox" name="hasTemporaryWorkers" ref={register}/> Send a temporary worker if
+                            shift
+                            is empty
+                        </InputGroup>
+                        {
+                            !hasTemporaryWorkers
+                                ? ""
+                                :
+                                <>
+                                    <p>Send confirmation request to employee at</p>
+                                    <InputGroup label="Confirm at">
+                                        <input type="time" ref={register({required: true})} name="timeToAdvertise"/>
+                                    </InputGroup>
+                                    <p>Send temporary worker candidates if confirmation not received by</p>
+                                    <InputGroup label="Send by">
+                                        <input type="time" ref={register({required: true})} name="sendCandidateBy"/>
+                                    </InputGroup>
+                                    <InputGroup label="Number of candidates">
+                                        <input type="integer" ref={register({required: true})} name="candidatesMax"/>
+                                    </InputGroup>
+                                </>
+                        }
+                        <Button type="submit" appearance="primary">Save shift(s)</Button>
+                    </form>
+                </div>
+                <div style={{padding: "1rem", margin: "0 0 0 1rem", background: "#F3F4F3", flexGrow: "1"}}>
+                    <p style={{color: '#555', fontWeight: 500}}><em>Preview of the shift</em></p>
+                    { nemployees && <p>You are creating a shift for {nemployees} employee{nemployees > 1 ? "s" : ""}.</p> }
+                    { employees.length > 0 && <p>{(employees.map((e) => e.value)).join(", ")} will be assigned to this shift.</p> }
                     {
-                        repeatable !== 'no' && (
-                            <>
-                                <textarea hidden={true} ref={register} name="repeatPattern" />
-                            <InputGroup label={"Days"}>
-                                {
-                                    ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((e) => {
-                                        return <React.Fragment key={e}>
-                                            <input type="checkbox" onChange={onIntervalChange} name={`R${e}`} ref={register} /> {e}
-                                        </React.Fragment>
-                                    })
-                                }
-                            </InputGroup>
-                            <InputGroup label="Repeat until">
-                                <input type="date" name="untilWhen" onChange={onIntervalChange} ref={register}/>
-                            </InputGroup>
-                            </>
+                        nemployees && (
+                            nemployees - employees.length === 0
+                            ? <p>All the shifts have been filled up</p>
+                            : nemployees - employees.length > 0
+                            ? <p>There are {nemployees - employees.length} shifts remaining to be filled out, which { hasTemporaryWorkers ? "will be filled out with temporary workers" : "are still unassigned."}</p>
+                            : <p>You have too many employees for this shift</p>
                         )
                     }
-
-                    <InputGroup label="Minimum Hours">
-                        <input name="hours" type="integer" ref={register({required: true})}/>
-                    </InputGroup>
-                    {errors.hours && <span className="input-error">You need to set a minimum amount of hours</span>}
-
-                    <InputGroup label="Temporary Workers">
-                        <input type="checkbox" name="hasTemporaryWorkers" ref={register}/> Send a temporary worker if
-                        shift
-                        is empty
-                    </InputGroup>
-                    {
-                        !hasTemporaryWorkers
-                            ? ""
-                            :
-                            <>
-                                <p>Send confirmation request to employee at</p>
-                                <InputGroup label="Confirm at">
-                                    <input type="time" ref={register({required: true})} name="timeToAdvertise"/>
-                                </InputGroup>
-                                <p>Send temporary worker candidates if confirmation not received by</p>
-                                <InputGroup label="Send by">
-                                    <input type="time" ref={register({required: true})} name="sendCandidateBy"/>
-                                </InputGroup>
-                                <InputGroup label="Number of candidates">
-                                    <input type="integer" ref={register({required: true})} name="candidatesMax"/>
-                                </InputGroup>
-                            </>
-                    }
-                    <Button type="submit" appearance="primary">Save shift(s)</Button>
-                </form>
+                    { repeat && <p>You are creating {repeat.all().length} shifts</p>}
+                    { timetable }
+                </div>
             </div>
-            <div style={{padding: "1rem", margin: "0 0 0 1rem", background: "#F3F4F3", flexGrow: "1"}}>
-                <p style={{color: '#555', fontWeight: 500}}><em>Preview of the shift</em></p>
-                { nemployees && <p>You are creating a shift for {nemployees} employee{nemployees > 1 ? "s" : ""}.</p> }
-                { employees.length > 0 && <p>{(employees.map((e) => e.value)).join(", ")} will be assigned to this shift.</p> }
-                {
-                    nemployees && (
-                        nemployees - employees.length === 0
-                        ? <p>All the shifts have been filled up</p>
-                        : nemployees - employees.length > 0
-                        ? <p>There are {nemployees - employees.length} shifts remaining to be filled out, which { hasTemporaryWorkers ? "will be filled out with temporary workers" : "are still unassigned."}</p>
-                        : <p>You have too many employees for this shift</p>
-                    )
-                }
-                { repeat && <p>You are creating {repeat.all().length} shifts</p>}
-                { timetable }
-            </div>
-        </div>
+        </>
     )
 }
 AddShifts.prototype.propTypes = {

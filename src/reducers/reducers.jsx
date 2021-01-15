@@ -49,6 +49,7 @@ const reducers = combineReducers({
     position: createNamedReducer(genericReducer, 'position'),
     activities: createNamedReducer(genericReducer, 'activities'),
     roles: createNamedReducer(genericReducer, 'roles'),
+    role: createNamedReducer(genericReducer, 'role'),
     activity: createNamedReducer(genericReducer, 'activity'),
     timezones: createNamedReducer(genericReducer, 'timezones'),
     members: createNamedReducer(genericReducer, 'members'),

@@ -124,7 +124,7 @@ export default function LocationCreate({ onSuccess, onFailure}) {
             });
         }
     }, 2000);
-    console.log("Fetched Timezones: ", timezones);
+    
     return(
         <>
             <LoadingPage loading={isLocationCreating} />

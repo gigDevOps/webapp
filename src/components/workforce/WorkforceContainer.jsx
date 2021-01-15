@@ -123,7 +123,7 @@ export default function WorkforceContainer() {
                     )
                 }
             </div>
-            <DataTable dataSource={rosters} isFetching={isFetchingRosters} columns={columns} />
+            {/* <DataTable dataSource={rosters} isFetching={isFetchingRosters} columns={columns} /> */}
         </LoadingView>
         </>
     )

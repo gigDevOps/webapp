@@ -54,6 +54,7 @@ const INIT_STATE = {
     member: GENERIC_STATE,
     dashboard: GENERIC_STATE,
     roles: GENERIC_STATE,
+    role: GENERIC_STATE,
     whosonline: GENERIC_STATE
 }
 
