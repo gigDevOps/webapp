@@ -17,6 +17,7 @@ import {NavLink} from "react-router-dom";
 import {useModal} from "react-modal-hook";
 import GModal from "../interface/GModal"
 import InOutWebcam from "./fragments/InOutWebcam";
+import { useAuthContext } from '../context/auth';
 import {Button, Icon} from "rsuite";
 import LoadingPage from "./LoadingPage";
 
@@ -88,6 +89,7 @@ export default function ({ children }) {
     const company = useSelector((store) => store.company);
     const [rosters, setRosters] = useState([]);
     const [isFetchingRosters, setIsFetchingRosters] = useState(true);
+    const auth = useAuthContext();
     const dispatch = useDispatch();
     const start = startOfDay(new Date());
     const end = endOfDay(start);
@@ -121,6 +123,10 @@ export default function ({ children }) {
 
     const name = [profile.data.first_name, profile.data.last_name].join(" ");
     if(user.is_password_temporary) return <UpdateTemporaryPassword user={user} />;
+
+    const onClickLogout = () => {
+        auth.onLogout();
+    }
     
     return(
         <LayoutWrapper>
@@ -154,17 +160,20 @@ export default function ({ children }) {
                         }
                     </div>
                     <CompanySelector name={company.data.company_name} />
+                    <Button size="sm" color="violet" style={{ marginRight: 10 }} onClick={onClickLogout}>
+                        Logout  <Icon color="white" icon="sign-out" />
+                    </Button>
                 </LayoutMenu>
                 <LayoutMain>
                 <LayoutSidebar>
                     <SidebarBlockMenuItem>
-                            <Avatar name={name} size={36} round />
-                            <p>
-                                <NavLink to={"/settings/profile"}>
-                                {[profile.data.first_name, profile.data.other_names].join(" ")}
-                                <br /> <small>{user.email}</small>
-                                </NavLink>
-                            </p>
+                        <Avatar name={name} size={36} round />
+                        <p>
+                            <NavLink to={"/settings/profile"}>
+                            {[profile.data.first_name, profile.data.other_names].join(" ")}
+                            <br /> <small>{user.email}</small>
+                            </NavLink>
+                        </p>
                     </SidebarBlockMenuItem>
                     <VerticalMenu menu={menu} perms={user.roles || ["ROLE_ADMIN"]}/>
                     {/* {
