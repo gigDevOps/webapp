@@ -132,11 +132,11 @@ export default function AuthContextProvider(props) {
  * @description Determine whether the authenticatedUser
  * is allowed access to a resource
  * @param {object} user
- * @param {object} permission
+ * @param [array] permission
  */
-export function isAllowedAccess(user, permission) {
+export function isAllowedAccess(user, permissions) {
     if(user && user.roles && user.roles.length > 0) {
-        if(!user.roles.some(p => permission.includes(p))) {
+        if(!user.roles.some(p => permissions.includes(p))) {
             return true;
         }
     }

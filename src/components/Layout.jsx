@@ -20,6 +20,7 @@ import InOutWebcam from "./fragments/InOutWebcam";
 import { useAuthContext } from '../context/auth';
 import {Button, Icon} from "rsuite";
 import LoadingPage from "./LoadingPage";
+import {BASE_MEDIA_URL} from "../services/APIClient";
 
 const menu = [
     { text: 'Dashboard', path: '/', icon: <AiOutlineDashboard /> },
@@ -84,9 +85,12 @@ const adminMenu = [
 ]
 
 export default function ({ children }) {
-    const user = useSelector((store) => store.user);
-    const profile = useSelector((store) => store.profile);
-    const company = useSelector((store) => store.company);
+    const isFetchingUser = useSelector((store) => store.user.isFetching);
+    const user = useSelector((store) => store.user.data);
+    const isFetchingProfile = useSelector((store) => store.profile.isFetching);
+    const profile = useSelector((store) => store.profile.data);
+    const isFetchingCompany = useSelector((store) => store.company.isFetching);
+    const company = useSelector((store) => store.company.data);
     const [rosters, setRosters] = useState([]);
     const [isFetchingRosters, setIsFetchingRosters] = useState(true);
     const auth = useAuthContext();
@@ -117,11 +121,11 @@ export default function ({ children }) {
     }, [dispatch]);
 
     // if(!user || !user.tenant || !user.roles) return <LoadingPage loading={true}/>;
-    if(!user || company.isFetching || profile.isFetching) return <LoadingPage loading={true}/>;
+    if(!user || isFetchingCompany || isFetchingProfile) return <LoadingPage loading={true}/>;
     
-    if(!company.data || !profile.data) return <Redirect to="/profile-setup" />;
+    if(!company || !profile) return <Redirect to="/profile-setup" />;
 
-    const name = [profile.data.first_name, profile.data.last_name].join(" ");
+    const name = [profile.first_name, profile.last_name].join(" ");
     if(user.is_password_temporary) return <UpdateTemporaryPassword user={user} />;
 
     const onClickLogout = () => {
@@ -159,18 +163,21 @@ export default function ({ children }) {
                             )
                         }
                     </div>
-                    <CompanySelector name={company.data.company_name} />
+                    <CompanySelector
+                        name={company.company_name}
+                        src={`${BASE_MEDIA_URL}/${company.company_logo}`}
+                    />
                     <Button size="sm" color="violet" style={{ marginRight: 10 }} onClick={onClickLogout}>
-                        Logout  <Icon color="white" icon="sign-out" />
+                    <Icon color="white" icon="sign-out" /> Logout
                     </Button>
                 </LayoutMenu>
                 <LayoutMain>
                 <LayoutSidebar>
                     <SidebarBlockMenuItem>
-                        <Avatar name={name} size={36} round />
+                        <Avatar name={name} src={`${BASE_MEDIA_URL}/${profile.profile_pic}`} size={36} round />
                         <p>
                             <NavLink to={"/settings/profile"}>
-                            {[profile.data.first_name, profile.data.other_names].join(" ")}
+                            {name}
                             <br /> <small>{user.email}</small>
                             </NavLink>
                         </p>
@@ -252,7 +259,7 @@ const LayoutMain = styled.div`
 const SidebarBlockMenuItem = styled.div`
     display: flex;
     align-items: center;
-    font-size: 90%;    
+    font-size: 90%;
     margin-bottom: 0.5rem;
     border-bottom: 1px solid #d5d6d5;
     padding: 1.5rem 1rem;

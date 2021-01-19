@@ -6,6 +6,7 @@ import AuthContextProvider from "./context/auth";
 import store from './reducers/store';
 import Gigsasa from "./application";
 import * as serviceWorker from './serviceWorker';
+import './index.css';
 import 'rsuite/dist/styles/rsuite-default.css'
 import './override.css';
 

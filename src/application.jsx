@@ -9,6 +9,7 @@ import LoginPage from "./components/LoginPage";
 import RegisterPage from "./components/RegisterPage";
 import LoadingPage from "./components/LoadingPage";
 import ProfileSetupPage from "./components/setup";
+import {isAllowedAccess} from "./context/auth";
 
 
 export default function() {
@@ -23,7 +24,7 @@ export default function() {
                 <RouteItem exact name="profileSetup" path="/profile-setup" component={ProfileSetupPage} layout={LayoutNoShell} perms="" />
                 {user ? (
                     Object.values(ROUTES).map((res) => (
-                        <RouteItem  exact={res.exact || true} key={res.path} name={res.name} path={res.path} component={res.component} perms={res.perms}/>
+                        <RouteItem  exact={res.exact || true} key={res.path} name={res.name} path={res.path} component={res.component} user={user} perms={res.perms}/>
                     ))
                     ) : (
                     <Redirect to="/login" />
@@ -40,12 +41,15 @@ function RouteItem(props) {
         component: Component,
         layout: Layout,
         path,
+        user,
+        perms
     } = props;
 
     const auth = useAuthContext();
     const {isFetching} = auth.authState;
 
-    const accessGranted = true; // isAllowedAccess(user, perms);
+    // const accessGranted = isAllowedAccess(user, perms);
+    const accessGranted = true;
 
     return (
         <>

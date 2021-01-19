@@ -16,7 +16,7 @@ set :ssh_options, {
 }
 set :repository_cache, "git_cache"
 
-set :build_command, 'GENERATE_SOURCEMAP=false NODE_OPTIONS=--max_old_space_size=2048 REACT_APP_API_URL="http://gigsasa.com/gigsasa_backend/api" npm run build'
+set :build_command, 'GENERATE_SOURCEMAP=false NODE_OPTIONS=--max_old_space_size=4096 REACT_APP_API_URL="http://gigsasa.com/gigsasa_backend/api" npm run build'
 
 namespace :gigsasa do
     desc "Build Gigsasa application"

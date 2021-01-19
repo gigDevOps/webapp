@@ -20,9 +20,9 @@ const columns = [
             )
         }
     },
-    { key: 'role', value: 'Role(s)' },
-    { key: 'phone_no', value: 'Phone Number'},
-    { key: 'email', value: 'Email' },
+    { key: 'role', value: 'Role(s)', render: (e)=>(e.role_id) },
+    { key: 'phone_no', value: 'Phone Number', render: (e)=>(e.phone_no)},
+    { key: 'email', value: 'Email', render: (e)=>(e.user.email) },
     { key: 'last_activity', value: 'Last Activity'},
     { key: 'actions', value: 'Actions' }
 ]

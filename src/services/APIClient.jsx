@@ -7,6 +7,7 @@ require('dotenv').config();
 const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
 const CLIENT_SECRET = process.env.REACT_APP_CLIENT_SECRET;
 export const BASE_API_URL = process.env.REACT_APP_API_URL;
+export const BASE_MEDIA_URL = process.env.REACT_APP_MEDIA_URL;
 
 const defaultConfig = {
     baseURL: BASE_API_URL,
