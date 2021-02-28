@@ -25,7 +25,7 @@ export default function reducer(prevState = null, action) {
         case FETCH_REQUEST:
             return {
                 isFetching: true,
-                data: undefined,
+                data: prevState.data,
             };
 
         case FETCH_SUCCESS:

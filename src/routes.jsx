@@ -16,6 +16,7 @@ import LocationsContainer from "./components/workforce/LocationsContainer";
 import PositionsContainer from "./components/workforce/PositionsContainer";
 import MembersContainer from "./components/settings/MembersContainer";
 import ProfileContainer from "./components/settings/ProfileContainer";
+import QuestionsContainer from "./components/workforce/QuestionsContainer";
 
 export default {
     dashboard: {
@@ -81,25 +82,31 @@ export default {
     },
     locations: {
         name: 'Locations',
-        path: '/workforce/locations',
+        path: '/locations',
         component: LocationsContainer,
         perms: ROLE_GROUPS.ADMIN
     },
+    questions: {
+        name: 'Performance Questions',
+        path: '/questions',
+        component: QuestionsContainer,
+        perms: ROLE_GROUPS.SUPERVISOR
+    },
     positions: {
         name: 'Positions',
-        path: '/workforce/roles',
+        path: '/roles',
         component: PositionsContainer,
         perms: ROLE_GROUPS.ADMIN
     },
     employees: {
         name: 'Employees',
-        path: '/workforce/employees',
+        path: '/employees',
         component: EmployeesContainer,
         perms: ROLE_GROUPS.SUPERVISOR
     },
     employee: {
         name: 'Employee',
-        path: '/workforce/employees/:id',
+        path: '/employees/:id',
         component: EmployeeContainer,
         perms: ROLE_GROUPS.SUPERVISOR
     },

@@ -1,6 +1,6 @@
 import React from "react";
 
-const G_MAP_KEY = 'AIzaSyCm-QmQdzRsJnp_u7pSypE_E6GfQfS948E';
+const G_MAP_KEY = process.env.REACT_APP_GKEY;
 
 const circle = ( lat, lng, rad, detail = 8 ) => {
     var uri = 'https://maps.googleapis.com/maps/api/staticmap?';

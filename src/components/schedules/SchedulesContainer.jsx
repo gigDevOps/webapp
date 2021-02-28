@@ -9,16 +9,12 @@ import { Button } from "rsuite";
 import styled from "styled-components";
 import qs  from 'query-string';
 
-import AddShifts from "./AddShifts";
-import {H1, PageTitle} from "../../interface/paragraph/Titles";
+import {PageTitle} from "../../interface/paragraph/Titles";
 import {fetch} from "../../actions/generics";
 import ShiftInCalendar from "../../interface/Scheduler/ShiftInCalendar";
 import DatePicker from '../../interface/DatePicker/DatePicker';
-import { CGridBlock, CGridWrapper } from "../../interface/Scheduler/CGrid";
 import LoadingView from "../../interface/LoadingView";
-import AddEmployee from "../fragments/AddEmployee";
 import CreateDepartment from "../fragments/DepartmentCreate";
-import CreateQuestion from "../fragments/QuestionCreate";
 import ShiftContainer from "./ShiftContainer";
 import GModal from "../../interface/GModal";
 import {ActionBar} from "../../interface/ActionBar";
@@ -26,13 +22,15 @@ import GroupCardsStats from "../../interface/Card/GroupCardsStats";
 import Card from "../../interface/Card/Card";
 import {SimpleTable} from "../../interface/Tables/SimpleTable";
 import Avatar from "react-avatar";
+import CreateShift from "./CreateShift";
 
 const formatDateTitle =  'ccc, MMM dd, yyyy';
 
 export default function SchedulesContainer() {
 
-    const rosters = useSelector((store) => store.rosters.data);
-    const isFetchingRosters = useSelector((store) => store.rosters.isFetching);
+    const [allocatedShifts, setAllocatedShifts] = React.useState([]);
+    const [unAllocatedShifts, setUnAllocatedShifts] = React.useState([]);
+    const isFetchingRosters = useSelector((store) => store.shifts.isFetching);
     const rostersStats = useSelector((store) => store.rosters_stats.data);
     const isFetchingRostersStats = useSelector((store) => store.rosters_stats.isFetching);
     const shift = useSelector((store) => store.shift.data);
@@ -57,9 +55,17 @@ export default function SchedulesContainer() {
     }
 
     const update = () => {
-        dispatch(fetch('rosters', '/rosters', {
+        dispatch(fetch('shifts', '/shift_allocation', {
             start: moment(period.start).format(),
             end: moment(period.end).format()
+        }, data => {
+            setAllocatedShifts(data)
+        }));
+        dispatch(fetch('shifts', '/unallocated_shifts', {
+            start: moment(period.start).format(),
+            end: moment(period.end).format()
+        }, data => {
+            // setUnAllocatedShifts(data)
         }));
         dispatch(fetch('rosters_stats', '/rosters_stats', {
             start: moment(period.start).format(),
@@ -73,40 +79,21 @@ export default function SchedulesContainer() {
         </GModal>
     ));
 
-    const [showCreateQuestion, hideCreateQuestion] = useModal(() => (
-        <GModal title="Create new questions" onClose={hideCreateQuestion} autoResize>
-            <CreateQuestion onSuccess={hideCreateQuestion} onFailure={()=>{}} />
-        </GModal>
-    ));
-
     const [showCreateShift, hideCreateShift] = useModal(() => (
-        <GModal title="Create a new shift" onClose={hideCreateShift}>
-            <AddShifts onCancel={hideCreateShift} afterCreation={() => {
-                update();
-                hideCreateShift();
-            }} />
+        <GModal title="Create a new shift" onClose={hideCreateShift} autoResize>
+            <CreateShift
+                onSuccess={() => {update(); hideCreateShift()}}
+                onFailure={hideCreateShift}
+            />
         </GModal>
     ));
-
-    const [showCreateEmployee, hideCreateEmployee] = useModal(() => (
-        <GModal title="Create employee" onClose={hideCreateEmployee} autoResize>
-            <AddEmployee onCancel={hideCreateEmployee} onSuccess={hideCreateEmployee} />
-        </GModal>
-    ))
 
     useEffect(() => {
         if(params.id) {
             const path = ['/shifts', params.id].join("/");
             dispatch(fetch('shift', path));
         } else {
-            dispatch(fetch('rosters', '/rosters', {
-                start: moment(period.start).format(),
-                end: moment(period.end).format()
-            }));
-            dispatch(fetch('rosters_stats', '/rosters_stats', {
-                start: moment(period.start).format(),
-                end: moment(period.end).format()
-            }));
+            update()
         }
     },[dispatch, period, params])
 
@@ -120,29 +107,27 @@ export default function SchedulesContainer() {
     }
 
     const days = eachDayOfInterval({ start: moment(period.start).toDate(), end: moment(period.end).toDate()});
-    const groups = _.groupBy(rosters, 'user_assigned.id');
 
     let tunassigned = [];
     let tassigned = [];
 
-    _.forEach(groups, (value, key) => {
-        if(key === "undefined") {
-            tunassigned.push({
-                shifts: mapToCalendar(days, value)
-            });
-        } else {
-            tassigned.push({
-                employee: {
-                    name: [_.get(value, '0.user_assigned.first_name'), _.get(value, '0.user_assigned.other_names')].join(" "),
-                    first_name: _.get(value, '0.user_assigned.first_name'),
-                    other_names: _.get(value, '0.user_assigned.other_names'),
-                    id: _.get(value, '0.user_assigned.id'),
-                    cost: _.reduce(value, (cost, v) => cost + _.get(v, 'price_per_hour', 0), 0)
-                },
-                shifts: mapToCalendar(days, value)
-            });
-        }
-    });
+    tunassigned.push({
+        shifts: mapToCalendar(days, unAllocatedShifts)
+    })
+
+    _.forEach(allocatedShifts,shift=>{
+        tassigned.push({
+            employee: {
+                name: [_.get(shift.user.employeeprofile, 'first_name'), _.get(shift.user.employeeprofile, 'other_names')].join(" "),
+                first_name: _.get(shift.user.employeeprofile, 'first_name'),
+                other_names: _.get(shift.user.employeeprofile, 'other_names'),
+                id: _.get(shift.user.employeeprofile, 'id'),
+            },
+
+            // shifts: mapToCalendar(days,  _.groupBy(allocatedShifts, shift.employee_id))
+            shifts: mapToCalendar(days, allocatedShifts.map(al=>al.shift))
+        });
+    })
 
     const subtitle = [format(period.start, formatDateTitle), format(period.end, formatDateTitle)].join(" - ");
     const stats = [
@@ -197,10 +182,8 @@ export default function SchedulesContainer() {
                     />
                 </div>
                 <div>
-                    <Button style={{ marginRight: '0.5rem'}} appearance="primary" color="red" size="md" onClick={showCreateQuestion}>Create questions</Button>
                     <Button style={{ marginRight: '0.5rem'}} appearance="primary" color="green" size="md" onClick={showCreateDepartment}>Create department</Button>
                     <Button style={{ marginRight: '0.5rem'}} appearance="primary" size="md" onClick={showCreateShift}>Create shifts</Button>
-                    <Button size="md" appearance="primary" color="blue" onClick={() => showCreateEmployee()}>Add employee</Button>
                 </div>
             </ActionBar>
             <LoadingView isFetching={isFetchingRostersStats}>
@@ -208,16 +191,16 @@ export default function SchedulesContainer() {
             </LoadingView>
             <Card hasPadding={false}>
                 <div style={{width: "100%", whiteSpace: "nowrap", overflow: "auto", display: 'block'}}>
-                <SimpleTable>
-                    <thead>
-                    <tr>
-                        <th />
-                        {days.map((r) => {
-                            return <th style={{fontWeight: 700, padding: "1rem"}}>{format(r, 'E d/M')}</th>
-                        })}
-                    </tr>
-                    </thead>
-                    <tbody>
+                    <SimpleTable>
+                        <thead>
+                        <tr>
+                            <th />
+                            {days.map((r) => {
+                                return <th style={{fontWeight: 700, padding: "1rem"}}>{format(r, 'E d/M')}</th>
+                            })}
+                        </tr>
+                        </thead>
+                        <tbody>
                         <tr>
                             <td colSpan={days.length + 1} style={{background: "#f3f8f9"}}>
                                 <ScheduleSection>Unassigned Shits</ScheduleSection>
@@ -225,9 +208,9 @@ export default function SchedulesContainer() {
                         </tr>
                         <tr>
                             <td />
-                        {
-                            tunassigned.map((s) => {
-                                return s.shifts.map((a) => {
+                            {
+                                tunassigned.map((s) => {
+                                    return s.shifts.map((a) => {
                                         if (typeof a.length < 1) {
                                             return <td />
                                         }
@@ -241,15 +224,15 @@ export default function SchedulesContainer() {
                                                         ].join('::');
                                                         return (
 
-                                                                <ShiftInCalendar
-                                                                    textColor="#c53224"
-                                                                    borderColor="#c53224"
-                                                                    border="dashed"
-                                                                    key={id}
-                                                                    id={id}
-                                                                    shift={sh}
-                                                                    beginning={moment.utc(sh.shift_start_time)}
-                                                                    termination={moment.utc(sh.shift_end_time)}/>
+                                                            <ShiftInCalendar
+                                                                textColor="#c53224"
+                                                                borderColor="#c53224"
+                                                                border="dashed"
+                                                                key={id}
+                                                                id={id}
+                                                                shift={sh}
+                                                                beginning={moment.utc(sh.shift_start_time)}
+                                                                termination={moment.utc(sh.shift_end_time)}/>
 
                                                         )
                                                     })
@@ -258,8 +241,8 @@ export default function SchedulesContainer() {
                                         )
                                     })
 
-                            })
-                        }
+                                })
+                            }
                         </tr>
                         <tr>
                             <td colSpan={days.length + 1} style={{background: "#f3f8f9"}}>
@@ -305,7 +288,7 @@ export default function SchedulesContainer() {
 
                         })
                         }
-                        
+
                         <tr>
                             <td colSpan={days.length + 1} style={{background: "#f3f8f9"}}>
                                 <ScheduleSection>Summary</ScheduleSection>
@@ -316,8 +299,8 @@ export default function SchedulesContainer() {
                         <SummaryRowTable data={rostersStats} field={'unscheduled_hours'} title={"Unscheduled hours"} suffix={"hours"} />
                         <SummaryRowTable data={rostersStats} field={'employees'} title={"Employees"} suffix={"emp."} />
 
-                    </tbody>
-                </SimpleTable>
+                        </tbody>
+                    </SimpleTable>
                 </div>
             </Card>
         </>
@@ -336,7 +319,7 @@ const SummaryRowTable = ({data, title, field, suffix, prefix}) => {
 }
 
 const ScheduleSection = styled.p`
-   text-transform: uppercase;
-   font-size: 85%;
-   font-weight: 700;
+  text-transform: uppercase;
+  font-size: 85%;
+  font-weight: 700;
 `

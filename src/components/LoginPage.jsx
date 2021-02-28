@@ -10,6 +10,7 @@ import {APIClient} from '../services/APIClient';
 import {H1} from "../interface/paragraph/Titles";
 import bgLogin from "./../interface/assets/login-background.jpg";
 import Button from "../interface/Button";
+import _ from "lodash";
 
 const schema = yup.object().shape({
     email: yup.string().email().required(),
@@ -62,9 +63,7 @@ export default function () {
             ? authContext.onLoginFailure({
                 status: err.response.status,
                 message:
-                    err.response.status === 401
-                        ? 'CREDENTIALS_INVALID'
-                        : err.response.statusText,
+                    _.get(err, 'response.data.message', err.response.statusText),
             })
             : authContext.onLoginFailure({
                 status: 500,
@@ -85,7 +84,7 @@ export default function () {
                 <LoginFormContainer>
                     <header>
                         {error ? (
-                            <H1>An error occurred</H1>
+                            <H1>{_.get(error, 'message', 'An error occurred')}</H1>
                         ) : (
                             <>
                                 <H1>Hi! Welcome</H1>

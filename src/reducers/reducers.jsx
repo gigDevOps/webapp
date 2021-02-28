@@ -21,9 +21,11 @@ function createNamedReducer(genericReducer, reducerName) {
 const reducers = combineReducers({
     jobs: createNamedReducer(genericReducer, 'jobs'),
     job: createNamedReducer(genericReducer, 'job'),
+    job_type: createNamedReducer(genericReducer, 'job_type'),
     user: createNamedReducer(genericReducer, 'user'),
     profile: createNamedReducer(genericReducer, 'profile'),
     setup: createNamedReducer(genericReducer, 'setup'),
+    departments: createNamedReducer(genericReducer, 'departments'),
     assignments: createNamedReducer(genericReducer, 'assignments'),
     assignment: createNamedReducer(genericReducer, 'assignment'),
     companies: createNamedReducer(genericReducer, 'companies'),

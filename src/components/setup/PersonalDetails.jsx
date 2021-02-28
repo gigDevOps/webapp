@@ -7,19 +7,19 @@ import {H1} from "../../interface/paragraph/Titles";
 import Button from "../../interface/Button";
 import SuccessModal from "../modals/Success";
 import Dropzone from "../../interface/Dropzone";
-import { toInteger } from 'lodash';
+import { get, toInteger } from 'lodash';
 
 /**
  * @description Assemble inputs to form a personalDetailsForm
  */
 export default function (props) {
     const setup = useSelector((store) => store.setup);
+    const user = useSelector((store) => store.user.data);
     const dispatch = useDispatch();
 
     const [modalVisible, setModalVisible] = useState(false);
     const [formValues, setValue] = useState({
         fullName: '',
-        role: '-1',
         phoneNo: '',
     });
     const { getRootProps, getInputProps, open, isDragActive, acceptedFiles } = useDropzone({
@@ -69,9 +69,10 @@ export default function (props) {
             formData.append("other_names", other_names);
             formData.append("phone", phoneNo);
             formData.append("profile_pic", acceptedFiles[0]);
-            formData.append("role_id", toInteger(role));
-            dispatch(create('setup', '/profile', formData, ()=>setModalVisible(true)));
-            console.log({setup});
+            formData.append("role_id", get(user, 'role_id'));
+            dispatch(create('setup', '/profile', formData, () => {
+                setModalVisible(true)
+            }));
         }
     }
 
@@ -83,7 +84,7 @@ export default function (props) {
                 <LoginFormContainer>
                     <header className="-mt-7">
                         <H1>Complete Your Profile</H1>
-                        <p className="text-lg mt-8 mb-2 text-gray-800">Personal Details</p>
+                        <p className="text-lg mt-8 mb-2 text-gray-800">Personal Details (Company {get(user, 'role.name', '')})</p>
                         <div className="border-b-2 border-gray-200 pb-3">
                             <p className="text-gray-500">Please enter the following details to complete your profile</p>
                         </div>
@@ -107,17 +108,6 @@ export default function (props) {
                             name="phoneNo"
                             onChange={(e) => handleFormInput(e)}
                         />
-                        <select
-                            style={styles.select}
-                            className="focus:outline-none w-full mr-4"
-                            name="role" value={role}
-                            onChange={(e) => handleFormInput(e)}
-                        >
-                            <option value="-1">What is your role at company?</option>
-                            <option value="2">Company</option>
-                            <option value="3">Employer</option>
-                            <option value="4">Supervisor</option>
-                        </select>
                         <p className="mt-2 text-gray-800">Upload your profile photo</p>
                         <Dropzone
                             open={open}
@@ -146,16 +136,6 @@ export default function (props) {
             />
         </div>
     );
-}
-
-const styles = {
-    select: {
-        padding: "1rem",
-        margin: "0.5rem 0",
-        border: "1px solid #eee",
-        borderRadius: "3px",
-        backgroundColor: "#F6F6F6"
-    }
 }
 
 const LoginFormContainer = styled.div`

@@ -10,13 +10,16 @@ import AddEmployee from "../fragments/AddEmployee";
 import {NavLink} from "react-router-dom";
 import GModal from "../../interface/GModal";
 import {ActionBar} from "../../interface/ActionBar";
+import {get} from "lodash";
 
 const columns = [
     {
         key: 'first_name', value: 'Name', render: (c) => {
             const name = [c.first_name, c.other_names].join(" ");
             return(
-                <NavLink to={`/workforce/employees/${c.id}`}><Avatar name={name} round size={24} /> {name} </NavLink>
+                <NavLink to={`/employees/${c.id}`}>
+                    <Avatar name={name} round size={24} src={get(c, 'profile.name', '')} /> {name}
+                </NavLink>
             )
         }
     },

@@ -10,6 +10,7 @@ import {H1} from "../interface/paragraph/Titles";
 
 import bgLogin from "./../interface/assets/login-background.jpg";
 import Button from "../interface/Button";
+import SuccessModal from "./modals/Success";
 
 const schema = yup.object().shape({
     email: yup.string().email().required(),
@@ -23,6 +24,7 @@ const schema = yup.object().shape({
 export default function () {
     const authContext = useAuthContext();
     const history = useHistory();
+    const [success, setSuccess] = React.useState(false)
 
     const { register, handleSubmit, errors } = useForm({
         resolver: yupResolver(schema)
@@ -30,8 +32,7 @@ export default function () {
 
     const moveOn = () => {
         authContext.onRegisterSuccess();
-        history.push("/login");
-        alert("Please check your email for account confirmation!");
+        setSuccess(true);
     }
 
     /**
@@ -140,6 +141,14 @@ export default function () {
                             <br /> and you confirm you have read our <Link className={styles.link} to="/privacy-policy">privacy policy</Link>
                         </small>
                     </div>
+                    <SuccessModal
+                        visible={success}
+                        message="Please check your email for account confirmation!"
+                        onDoneHandler={() => {
+                            setSuccess(false)
+                            history.push("/login")
+                        }}
+                    />
                 </LoginFormContainer>
             </div>
         );

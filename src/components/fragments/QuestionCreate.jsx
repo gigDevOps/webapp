@@ -12,33 +12,32 @@ export default function QuestionCreate({ onSuccess, onFailure }) {
     const isQuestionCreating = useSelector((store)=>store.question.form.isPosting);
     const isFetchingDepartments = useSelector((store)=>store.organizations.isFetching);
     const departments = useSelector((store)=>store.organizations.data);
-    const isFetchingShifts = useSelector((store)=>store.shifts.isFetching);
-    const shifts = useSelector((store)=>store.shifts.data);
-    
+    const isFetchingJobTypes = useSelector((store)=>store.job_type.isFetching);
+    const jobTypes = useSelector((store)=>store.job_type.data);
+
     useEffect(() => {
+        dispatch(fetch('job_type', '/job_type'));
         dispatch(fetch('organizations', '/organization'));
-        dispatch(fetch('shifts', '/shifts'));
     }, []);
-    
+
     const onSubmit = (data) => {
-        const formData = new FormData();
-        formData.append("question", data.question1);
-        formData.append("dept_id", data.dept_id);
-        formData.append("shift_id", data.shift_id);
-        dispatch(create('question', '/performance_questions', formData, onSuccess, onFailure));
+        dispatch(create('question', '/performance_questions', data, onSuccess, onFailure));
     }
 
     return(
         <>
             <LoadingPage loading={isQuestionCreating} />
             <form onSubmit={handleSubmit(onSubmit)}>
-                <InputGroup label="Question 1">
-                    <input ref={register} name="question1" placeholder="Question 1" />
-                    <p>{errors.question1?.message}</p>
+                <InputGroup label="Question">
+                    <input ref={register} name="question" placeholder="Question" />
+                    <p>{errors.question?.message}</p>
                 </InputGroup>
-                <InputGroup label="Question 2">
-                    <input ref={register} name="question2" placeholder="Question 2" />
-                    <p>{errors.question2?.message}</p>
+                <InputGroup label="Question Type" tooltip="When should users see the question">
+                    <select name="question_type" ref={register} >
+                         <option value="Clock In">Clock In</option>
+                         <option value="Clock Out">Clock Out</option>
+                    </select>
+                    <p>{errors.question_type?.message}</p>
                 </InputGroup>
                 <InputGroup label="Department" tooltip="Select the relevant department">
                     { isFetchingDepartments && <p>Loading departments...</p> }
@@ -55,20 +54,18 @@ export default function QuestionCreate({ onSuccess, onFailure }) {
                     }
                     <p>{errors.dept_id?.message}</p>
                 </InputGroup>
-                <InputGroup label="Shift" tooltip="Select the relevant shift">
-                    { isFetchingShifts && <p>Loading shifts...</p> }
-                        {
-                            !isFetchingShifts && shifts && (
-                                <select name="shift_id" ref={register} >
-                                    {
-                                        shifts.map((s) => {
-                                            return <option value={s.id}>{s.shiftstarttime} to {s.shiftendtime}</option>
-                                        })
-                                    }
-                                </select>
-                            )
-                        }
-                    <p>{errors.shift_id?.message}</p>
+                <InputGroup label="Job type" tooltip="Select the relevant Job Type">
+                    { isFetchingJobTypes && <p>Loading job types...</p> }
+                    {!isFetchingJobTypes && jobTypes && (
+                        <select name="job_type_id" ref={register} >
+                            {
+                                jobTypes.map((s) => {
+                                    return <option value={s.id}>{s.name}</option>
+                                })
+                            }
+                        </select>
+                    )}
+                    <p>{errors.job_type_id?.message}</p>
                 </InputGroup>
                 <Button appearance="primary" type="submit">Save</Button>
             </form>

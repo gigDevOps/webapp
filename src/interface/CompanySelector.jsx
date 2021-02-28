@@ -2,11 +2,11 @@ import React from "react";
 import Avatar from "react-avatar";
 import styled from "styled-components";
 
-export default function ({name}) {
+export default function ({name, src}) {
     return(
         <Container>
                 <Label>Organization: </Label>
-                <Avatar size={24} name={name} round />
+                <Avatar size={24} src={src} name={name} round />
                 <Text>{name}</Text>
         </Container>
     )
@@ -18,6 +18,10 @@ const Container = styled.div`
     font-weight: 400;
     align-items: center;
     border-left: 1px solid #ddd;
+  
+  img {
+    object-fit: cover;
+  }
 `
 
 const Label = styled.span`

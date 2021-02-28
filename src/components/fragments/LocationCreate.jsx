@@ -41,29 +41,21 @@ export default function LocationCreate({ onSuccess, onFailure}) {
         formData.append("name", data.name);
         formData.append("address", data.address);
         formData.append("radius", data.radius);
-        formData.append("timezone_id", data.timezone);
+        formData.append("latitude", data.lat);
+        formData.append("longitude", data.lng);
         dispatch(create('location', '/location', formData, onSuccess, (res)=>{
             console.log("Create Location error: ", res);
             onFailure();
         }));
     }
 
-    const getTimezones = () => {
-        if(!timezones || timezones.length < 1) {
-            dispatch(fetch('timezones', '/timezone'), {},  () => {
-                setValue('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
-            });
-        }
-    }
-
     useEffect(() => {
         markByLatLng(center, radius);
-        getTimezones();
     }, [dispatch, mapRef, mapsRef, radius, center]);
 
     const onGoogleApiLoaded = ({ map, maps }) => {
-       setMapRef(map);
-       setMapsRef(maps);
+        setMapRef(map);
+        setMapsRef(maps);
     }
 
     const markByLatLng = debounce((center, radius) => {
@@ -102,7 +94,7 @@ export default function LocationCreate({ onSuccess, onFailure}) {
             const geocoder = new mapsRef.Geocoder();
             geocoder.geocode({ location: center }, (results, status) => {
                 if(status === 'OK') {
-                    setValue('address', results[0].formatted_address);
+                    // setValue('address', results[0].formatted_address);
                 }
             });
 
@@ -124,7 +116,7 @@ export default function LocationCreate({ onSuccess, onFailure}) {
             });
         }
     }, 2000);
-    
+
     return(
         <>
             <LoadingPage loading={isLocationCreating} />
@@ -140,29 +132,18 @@ export default function LocationCreate({ onSuccess, onFailure}) {
                             debounceGeocodeByAddress(event.target.value, true);
                         }
                     }}
-                           placeholder="Autocomplete point of interest" name="address" ref={register} />
+                           placeholder="Autocomplete point of interest" name="address" ref={register}
+                    />
                 </InputGroup>
-                <InputGroup label="Timezone" tooltip="Select the timezone for this location">
-                    { isFetchingTimezones && <p>Loading timezones...</p> }
-                        {
-                            !isFetchingTimezones && timezones && (
-                                <select name="timezone" ref={register} >
-                                    {
-                                        timezones.map((t) => {
-                                            return <option value={t.id}>{t.location_name} - {t.timezone}</option>
-                                        })
-                                    }
-                                </select>
-                            )
-                        }
-                    <p>{errors.name?.message}</p>
+                <InputGroup label="Radius" tooltip="Select the radius in meters for geofencing">
+                    <input
+                        type="range" min="12" max="500" autoComplete="none" placeholder="Radius (in meters)"
+                        defaultValue={radius} name="radius" ref={register}
+                        style={{width: '300px'}}
+                    />
                 </InputGroup>
                 <div style={{ height: '350px', width: '100%', position: 'relative' }}>
                     <div style={{ width: "25%", zIndex: 9999, position: 'absolute', left: '1rem', top: '1rem'}}>
-                        <InputGroup label="Radius" tooltip="Select the radius in meters for geofencing">
-                            <input type="range" min="12" max="500" autoComplete="none" placeholder="Radius (in meters)"
-                                   defaultValue={radius} name="radius" ref={register} />
-                        </InputGroup>
                         <div style={{ background: 'rgba(255,255,255,0.5', padding: '1rem', border: '1px solid #ccc'}}>
                             <p><small>
                                 Latitude: {center.lat} <br />
@@ -171,22 +152,25 @@ export default function LocationCreate({ onSuccess, onFailure}) {
                             </small></p>
                         </div>
                     </div>
-                <GoogleMapReact
-                    yesIWantToUseGoogleMapApiInternals
-                    onGoogleApiLoaded={onGoogleApiLoaded}
-                    options={{
-                        disableDoubleClickZoom: true
-                    }}
-                    bootstrapURLKeys={{ key: 'AIzaSyCm-QmQdzRsJnp_u7pSypE_E6GfQfS948E' }}
-                    center={center}
-                    defaultZoom={19}
-                >
-                </GoogleMapReact>
+                    <GoogleMapReact
+                        yesIWantToUseGoogleMapApiInternals
+                        onGoogleApiLoaded={onGoogleApiLoaded}
+                        options={{
+                            disableDoubleClickZoom: true
+                        }}
+                        bootstrapURLKeys={{ key: process.env.REACT_APP_GKEY }}
+                        center={center}
+                        defaultZoom={19}
+                    >
+                    </GoogleMapReact>
                 </div>
                 <input type="text" autoComplete="none" hidden name="lat" ref={register} />
                 <input type="text" autoComplete="none" hidden name="lng" ref={register} />
+                <br/>
                 <Button appearance="primary" type="submit">Save</Button>
             </form>
         </>
     )
 }
+
+

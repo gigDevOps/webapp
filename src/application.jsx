@@ -22,14 +22,28 @@ export default function() {
                 <RouteItem exact name="login" path="/login" component={LoginPage} layout={LayoutNoShell} perms="" />
                 <RouteItem exact name="register" path="/register" component={RegisterPage} layout={LayoutNoShell} perms="" />
                 <RouteItem exact name="profileSetup" path="/profile-setup" component={ProfileSetupPage} layout={LayoutNoShell} perms="" />
-                {user ? (
-                    Object.values(ROUTES).map((res) => (
-                        <RouteItem  exact={res.exact || true} key={res.path} name={res.name} path={res.path} component={res.component} user={user} perms={res.perms}/>
-                    ))
-                    ) : (
-                    <Redirect to="/login" />
-                )}
-                <RouteItem name="not-found" path="*" component={() => <p>Feature coming soon</p>} layout={Layout} perms={[]} />
+                <Route>
+                    <Layout>
+                        <Switch>
+                            {user ? (
+                                Object.values(ROUTES).map((res) => (
+                                    <RouteItem
+                                        exact={res.exact || true}
+                                        key={res.path}
+                                        name={res.name}
+                                        path={res.path}
+                                        component={res.component}
+                                        user={user}
+                                        perms={res.perms}
+                                    />
+                                ))
+                            ) : (
+                                <Redirect to="/login" />
+                            )}
+                            <RouteItem name="not-found" path="*" component={() => <p>Feature coming soon</p>} layout={Layout} perms={[]} />
+                        </Switch>
+                    </Layout>
+                </Route>
             </Switch>
         </BrowserRouter>
     )
@@ -58,16 +72,14 @@ function RouteItem(props) {
                     exact={exact}
                     path={path}
                     render={() => (
-                        <Layout>
+                        <>
                             <LoadingPage loading={isFetching} />
                             <Component/>
-                        </Layout>
+                        </>
                     )}
                 />
             ) : (
-                <Layout user={{}}>
-                    <p>Not found</p>
-                </Layout>
+                <p>Not found</p>
             )}
         </>
     );

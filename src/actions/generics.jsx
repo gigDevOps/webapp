@@ -1,4 +1,5 @@
 import { APIClient } from "../services/APIClient";
+import _ from "lodash";
 
 const saveAs = () => {}
 
@@ -131,7 +132,15 @@ export function fetch(
         try {
             const res = await APIClient.get(path, { params });
             if (res && res.status === 200) {
-                dispatch(fetchSuccess(res.data[stateName], stateName));
+                if (stateName === 'user'){
+                    dispatch(fetchSuccess(res.data[stateName][0], stateName));
+                } else {
+                    if (_.keys(res.data).includes(stateName)){
+                        dispatch(fetchSuccess(res.data[stateName], stateName));
+                    } else {
+                        dispatch(fetchSuccess(res.data, stateName));
+                    }
+                }
                 onSuccess(res.data);
             }
         } catch (error) {
@@ -215,7 +224,7 @@ function handleApiError(error) {
     return error.response && error.response.data
         ? {
             status: error.response.status || 500,
-            message: error.response.data.msg || 'SERVER_ERR',
+            message: error.response.data.message || 'SERVER_ERR',
         }
         : { status: 500, message: 'NO_RESPONSE' };
 }

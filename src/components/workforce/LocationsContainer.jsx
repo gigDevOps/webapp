@@ -35,7 +35,7 @@ export default function LocationsContainer() {
 
     const locs = locations.map((loc) => loc);
     const columns = [
-        { key: 'map', value: '', render: (l) => <StaticMap lat={l.lat} lng={l.lng} radius={l.radius} /> },
+        { key: 'map', value: '', render: (l) => <StaticMap lat={l.latitude} lng={l.longitude} radius={l.radius} /> },
         { key: 'description', value: 'Area for geofencing', render: (l) => {
             return (
               <>
