@@ -45,10 +45,8 @@ export default function AddEmployee({ onCancel, onSuccess, ...props}) {
         formData.append("dept_id", data.dept_id);
         formData.append("employee_id", data.employee_id);
         formData.append("phone_no", data.phone_number);
-        formData.append("wages", data.wages);
         formData.append("email", data.email);
-        // formData.append("role_id", data.role_id);
-        // formData.append("enabled", data.enabled);
+        formData.append("role_id", data.role_id);
         dispatch(create('employee', '/candidate_profile', formData, onSuccess, (res) => {
             if(res.data) {
                 setServerErrors(res.data);
@@ -74,9 +72,6 @@ export default function AddEmployee({ onCancel, onSuccess, ...props}) {
                 <InputGroup label="Email">
                     <input type="email" autoComplete="none" placeholder="Employee email" name="email" ref={register} />
                     <p>{errors.email?.message}</p>
-                </InputGroup>
-                <InputGroup label="Employee ID">
-                    <input type="text" autoComplete="none" placeholder="Employee ID" name="employee_id" ref={register} />
                 </InputGroup>
                 <InputGroup label="Role" tooltip="Select the relevant role">
                     { isFetchingRoles && <p>Loading roles...</p> }
@@ -108,14 +103,6 @@ export default function AddEmployee({ onCancel, onSuccess, ...props}) {
                     }
                     <p>{errors.dept_id?.message}</p>
                 </InputGroup>
-                <InputGroup label="Active account">
-                    <input type="checkbox" name="enabled" ref={register} />
-                </InputGroup>
-                <InputGroup label="Wages" tooltip="(wages set by company policies)">
-                    <input type="text" name="wages" ref={register} />
-                    {/* <input type="text" name="wages" ref={register} value={15} disabled={true}  /> */}
-                </InputGroup>
-
                 <Button appearance="primary" type="submit">Save</Button>
             </form>
         </>

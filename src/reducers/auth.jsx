@@ -22,12 +22,13 @@ export const INIT_AUTH_STATE = {
 export default function authReducer(prevState = INIT_AUTH_STATE, action) {
     switch (action.type) {
         case REGISTER_REQUEST:
-            return { ...prevState, isFetching: true };
+            return { ...prevState, isFetching: true, error: null };
 
         case REGISTER_SUCCESS:
             return {
                 ...prevState,
-                isFetching: false
+                isFetching: false,
+                error: null
             };
 
         case REGISTER_ERROR:
@@ -38,13 +39,14 @@ export default function authReducer(prevState = INIT_AUTH_STATE, action) {
             };
 
         case LOGIN_REQUEST:
-            return { ...prevState, isFetching: true };
+            return { ...prevState, isFetching: true, error: null };
 
         case LOGIN_SUCCESS:
             return {
                 ...prevState,
                 isFetching: false,
                 user: action.user,
+                error: null
             };
 
         case LOGIN_ERROR:

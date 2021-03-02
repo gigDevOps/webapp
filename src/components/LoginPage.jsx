@@ -11,6 +11,7 @@ import {H1} from "../interface/paragraph/Titles";
 import bgLogin from "./../interface/assets/login-background.jpg";
 import Button from "../interface/Button";
 import _ from "lodash";
+import {colors} from "../interface/styles";
 
 const schema = yup.object().shape({
     email: yup.string().email().required(),
@@ -84,7 +85,7 @@ export default function () {
                 <LoginFormContainer>
                     <header>
                         {error ? (
-                            <H1>{_.get(error, 'message', 'An error occurred')}</H1>
+                            <H1 style={{color: colors.red}}>{_.get(error, 'message', 'An error occurred')}</H1>
                         ) : (
                             <>
                                 <H1>Hi! Welcome</H1>

@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useDropzone } from 'react-dropzone';
 import {useDispatch, useSelector} from 'react-redux';
-import {create} from "../../actions/generics";
+import {create, fetch} from "../../actions/generics";
 import {H1} from "../../interface/paragraph/Titles";
 import Button from "../../interface/Button";
 import SuccessModal from "../modals/Success";
 import Dropzone from "../../interface/Dropzone";
+import LoadingPage from "../LoadingPage";
 
 /**
  * @description Assemble inputs to form a personalDetailsForm
@@ -45,6 +46,7 @@ export default function (props) {
 
     const onModalDoneHandler = () => {
         setModalVisible(false);
+        dispatch(fetch('company', '/get-company'));
         props.nextHandler();
     }
 
@@ -64,6 +66,10 @@ export default function (props) {
     }
 
     const { companyName, description, address, webUrl, email, phoneNo } = formValues;
+
+    if (setup.form.isPosting){
+        return <LoadingPage loading={setup.form.isPosting} />
+    }
 
     return (
         <div className="w-full bg-white">

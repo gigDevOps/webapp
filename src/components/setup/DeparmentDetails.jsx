@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import {useDispatch, useSelector} from 'react-redux';
-import {create} from "../../actions/generics";
+import {create, fetch} from "../../actions/generics";
 import {H1} from "../../interface/paragraph/Titles";
 import Button from "../../interface/Button";
 import SuccessModal from "../modals/Success";
 import {Message} from "rsuite";
 import { get } from "lodash";
+import LoadingPage from "../LoadingPage";
 
 /**
  * @description Assemble inputs to form a department details
@@ -36,6 +37,7 @@ export default function (props) {
 
     const onModalDoneHandler = () => {
         setModalVisible(false);
+        dispatch(fetch('departments', '/organization'));
         props.nextHandler();
     }
 
@@ -45,6 +47,10 @@ export default function (props) {
     }
 
     const { name, team_size, email } = formValues;
+
+    if (setup.form.isPosting){
+        return <LoadingPage loading={setup.form.isPosting} />
+    }
 
     return (
         <div className="w-full bg-white">

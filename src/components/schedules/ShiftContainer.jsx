@@ -15,9 +15,9 @@ export default function ShiftContainer({ shift, onClose }) {
     const params = useParams();
     const dispatch = useDispatch();
 
-    const startDate = shift.shift_start_time ? moment.utc(shift.shift_start_time) : '';
-    const startTime = shift.shift_start_time ? moment.utc(shift.shift_start_time) : '';
-    const endTime = shift.shift_end_time ? moment.utc(shift.shift_end_time) : '';
+    const startDate = shift.shiftstartdate ? moment.utc(shift.shiftstartdate) : '';
+    const startTime = shift.shiftstartdate ? moment.utc(shift.shiftstartdate) : '';
+    const endTime = shift.shiftenddate ? moment.utc(shift.shiftenddate) : '';
     const employeeName =  [_.get(shift, 'user_assigned.first_name'), _.get(shift, 'user_assigned.other_names')].join(" ");
 
     return(

@@ -10,22 +10,53 @@ import RegisterPage from "./components/RegisterPage";
 import LoadingPage from "./components/LoadingPage";
 import ProfileSetupPage from "./components/setup";
 import {isAllowedAccess} from "./context/auth";
+import {useDispatch, useSelector} from "react-redux";
+import {fetch} from "./actions/generics";
+import _ from "lodash";
 
 
 export default function() {
     const auth = useAuthContext();
-    const { user } = auth.authState;
+    const { user: authUser } = auth.authState;
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        if (authUser){
+            dispatch(fetch('user', '/get-user'));
+            dispatch(fetch('profile', '/get-profile'));
+            dispatch(fetch('company', '/get-company'));
+            dispatch(fetch('departments', '/organization'));
+        }
+    }, [dispatch, authUser])
 
     return(
         <BrowserRouter>
             <Switch>
-                <RouteItem exact name="login" path="/login" component={LoginPage} layout={LayoutNoShell} perms="" />
-                <RouteItem exact name="register" path="/register" component={RegisterPage} layout={LayoutNoShell} perms="" />
-                <RouteItem exact name="profileSetup" path="/profile-setup" component={ProfileSetupPage} layout={LayoutNoShell} perms="" />
+                <RouteItem exact name="login" path="/login" component={LoginPage} layout={LayoutNoShell} perms={[]} />
+                <RouteItem exact name="register" path="/register" component={RegisterPage} layout={LayoutNoShell} perms={[]} />
+                {authUser && (
+                    <RouteItem
+                        exact
+                        name="profileSetup"
+                        path="/profile-setup"
+                        component={ProfileSetupPage}
+                        layout={LayoutNoShell}
+                        perms={[]}
+                    />
+                )}
+                {!authUser && (
+                    <RouteItem
+                        name="redirect"
+                        path="*"
+                        component={() => <Redirect to="/login" />}
+                        layout={Layout}
+                        perms={[]}
+                    />
+                )}
                 <Route>
                     <Layout>
                         <Switch>
-                            {user ? (
+                            {authUser && (
                                 Object.values(ROUTES).map((res) => (
                                     <RouteItem
                                         exact={res.exact || true}
@@ -33,14 +64,17 @@ export default function() {
                                         name={res.name}
                                         path={res.path}
                                         component={res.component}
-                                        user={user}
                                         perms={res.perms}
                                     />
                                 ))
-                            ) : (
-                                <Redirect to="/login" />
                             )}
-                            <RouteItem name="not-found" path="*" component={() => <p>Feature coming soon</p>} layout={Layout} perms={[]} />
+                            <RouteItem
+                                name="not-found"
+                                path="*"
+                                component={() => <p>Feature coming soon</p>}
+                                layout={Layout}
+                                perms={[]}
+                            />
                         </Switch>
                     </Layout>
                 </Route>

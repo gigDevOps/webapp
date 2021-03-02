@@ -61,11 +61,11 @@ export default function SchedulesContainer() {
         }, data => {
             setAllocatedShifts(data)
         }));
-        dispatch(fetch('shifts', '/unallocated_shifts', {
+        dispatch(fetch('shifts', '/shifts', {
             start: moment(period.start).format(),
             end: moment(period.end).format()
         }, data => {
-            // setUnAllocatedShifts(data)
+            setUnAllocatedShifts(data.shifts.filter(s => s.shift_status === 'Unallocated'))
         }));
         dispatch(fetch('rosters_stats', '/rosters_stats', {
             start: moment(period.start).format(),
@@ -100,7 +100,7 @@ export default function SchedulesContainer() {
     const mapToCalendar = (days, shifts) => {
         return _.map(days, (day) => {
             const s = _.filter(shifts, (o) => {
-                return format(new Date(o.shift_start_time), 'yMMd') === format(day, 'yMMd');
+                return format(new Date(_.get(o, 'shift.shiftstartdate', _.get(o, 'shiftstartdate', ''))), 'yMMd') === format(day, 'yMMd');
             })
             return s || {};
         });
@@ -115,7 +115,9 @@ export default function SchedulesContainer() {
         shifts: mapToCalendar(days, unAllocatedShifts)
     })
 
-    _.forEach(allocatedShifts,shift=>{
+    const userShifts = _.groupBy(allocatedShifts, 'user.employeeprofile.id');
+    _.forEach(userShifts,shifts => {
+        const shift = shifts[0];
         tassigned.push({
             employee: {
                 name: [_.get(shift.user.employeeprofile, 'first_name'), _.get(shift.user.employeeprofile, 'other_names')].join(" "),
@@ -124,8 +126,7 @@ export default function SchedulesContainer() {
                 id: _.get(shift.user.employeeprofile, 'id'),
             },
 
-            // shifts: mapToCalendar(days,  _.groupBy(allocatedShifts, shift.employee_id))
-            shifts: mapToCalendar(days, allocatedShifts.map(al=>al.shift))
+            shifts: mapToCalendar(days, shifts)
         });
     })
 
@@ -165,10 +166,14 @@ export default function SchedulesContainer() {
     return(
         <>
             {
-                shift && shift.shift_start_time && params.id && <ShiftContainer onClose={() => {
-                    const query = qs.stringify({ start: moment(period.start).format('YYYY-MM-DD')});
-                    history.push(['/schedules', query].join('?'));
-                }} shift={shift} />
+                shift && shift.shiftstarttime && params.id &&
+                <ShiftContainer
+                    onClose={() => {
+                        const query = qs.stringify({ start: moment(period.start).format('YYYY-MM-DD')});
+                        history.push(['/schedules', query].join('?'));
+                    }}
+                    shift={shift}
+                />
             }
             <PageTitle title="Schedule" sub={subtitle} />
             <ActionBar>

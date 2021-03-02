@@ -118,10 +118,6 @@ export default function ({ children }) {
     });
 
     useEffect(() => {
-        dispatch(fetch('user', '/get-user'));
-        dispatch(fetch('profile', '/get-profile'));
-        dispatch(fetch('company', '/get-company'));
-        dispatch(fetch('departments', '/organization'));
         dispatch(fetch('clock-in-out-layout', '/active-shift', {}, (res) => {
             setIsFetchingRosters(false);
             setRosters(res);
@@ -132,7 +128,10 @@ export default function ({ children }) {
     // if(!user || !user.tenant || !user.roles) return <LoadingPage loading={true}/>;
     if(!user || isFetchingCompany || isFetchingProfile) return <LoadingPage loading={true}/>;
 
-    if(!company || !profile || !departments || !departments.length) return <Redirect to="/profile-setup" />;
+    const isAdmin = !Array.isArray(user) && _.get(user, 'role.name', '') === 'Admin';
+    if(!profile || (isAdmin && (!company || !departments || !departments.length))){
+        return <Redirect to="/profile-setup" />;
+    }
 
     const name = [profile.first_name, profile.last_name].join(" ");
     if(user.is_password_temporary) return <UpdateTemporaryPassword user={user} />;
@@ -172,8 +171,8 @@ export default function ({ children }) {
                         }
                     </div>
                     <CompanySelector
-                        name={company.company_name}
-                        src={company.company_logo}
+                        name={_.get(company, 'company_name', _.get(user, 'company.company_name', ''))}
+                        src={_.get(company, 'company_logo', _.get(user, 'company.company_logo', ''))}
                     />
                     <Button size="sm" color="violet" style={{ marginRight: 10 }} onClick={onClickLogout}>
                         <Icon color="white" icon="sign-out" /> Logout
@@ -191,7 +190,7 @@ export default function ({ children }) {
                             </p>
                         </SidebarBlockMenuItem>
                         <VerticalMenu menu={menu} perms={user.roles || ["ROLE_ADMIN"]}/>
-                        {_.get(user, 'role.name', '') === "Admin" && (
+                        {_.get(user, 'data.role.name', '') === "Admin" && (
                             <>
                                 <SidebarMenuGroupTitle>Administration</SidebarMenuGroupTitle>
                                 <VerticalMenu menu={adminMenu} perms={user.roles || ["ROLE_ADMIN"]} />

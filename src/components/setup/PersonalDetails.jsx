@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useDropzone } from 'react-dropzone';
 import {useDispatch, useSelector} from 'react-redux';
-import {create} from "../../actions/generics";
+import {create, fetch} from "../../actions/generics";
 import {H1} from "../../interface/paragraph/Titles";
 import Button from "../../interface/Button";
 import SuccessModal from "../modals/Success";
 import Dropzone from "../../interface/Dropzone";
 import { get, toInteger } from 'lodash';
+import LoadingPage from "../LoadingPage";
 
 /**
  * @description Assemble inputs to form a personalDetailsForm
@@ -57,6 +58,7 @@ export default function (props) {
 
     const onModalDoneHandler = () => {
         setModalVisible(false);
+        dispatch(fetch('profile', '/get-profile'));
         props.nextHandler();
     }
 
@@ -67,7 +69,7 @@ export default function (props) {
             let formData = new FormData();
             formData.append("first_name", first_name);
             formData.append("other_names", other_names);
-            formData.append("phone", phoneNo);
+            formData.append("phone_no", phoneNo);
             formData.append("profile_pic", acceptedFiles[0]);
             formData.append("role_id", get(user, 'role_id'));
             dispatch(create('setup', '/profile', formData, () => {
@@ -77,6 +79,11 @@ export default function (props) {
     }
 
     const { fullName, role, phoneNo } = formValues;
+
+
+    if (setup.form.isPosting){
+        return <LoadingPage loading={setup.form.isPosting} />
+    }
 
     return (
         <div className="w-full bg-white">

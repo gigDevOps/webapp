@@ -23,7 +23,7 @@ export default function AssignEmployeeToShift({ shiftID, onSuccess }) {
 
     useEffect(() => {
         register({name: "employees"});
-        dispatch(fetch("employees", "/employees"));
+        dispatch(fetch("employees", "/candidate_profile"));
     }, [dispatch, register]);
 
     const onEmployeeChange = (e) => {
