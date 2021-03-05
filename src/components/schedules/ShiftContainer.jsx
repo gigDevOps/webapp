@@ -8,9 +8,8 @@ import {useHistory, useParams} from "react-router-dom";
 import AssignEmployeeToShift from "../fragments/AssignEmployeeToShift";
 import GModal from "../../interface/GModal";
 
-export default function ShiftContainer({ shift, onClose }) {
+export default function ShiftContainer({ shift, onClose, OnAssign }) {
     const [isAssigningEmployee, setIsAssigningEmployee] = useState(false);
-    console.log(shift);
     const history = useHistory();
     const params = useParams();
     const dispatch = useDispatch();
@@ -68,8 +67,8 @@ export default function ShiftContainer({ shift, onClose }) {
             { isAssigningEmployee && <AssignEmployeeToShift
                 onSuccess={(res) => {
                     setIsAssigningEmployee(false);
-                    window.location.reload();
-                    history.push('/schedules/shifts/' + res.data.shift.id + history.location.search);
+                    OnAssign();
+                    onClose();
                 }}
                 shiftID={params.id}
             /> }

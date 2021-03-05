@@ -55,21 +55,16 @@ export default function SchedulesContainer() {
     }
 
     const update = () => {
-        dispatch(fetch('shifts', '/shift_allocation', {
-            start: moment(period.start).format(),
-            end: moment(period.end).format()
-        }, data => {
-            setAllocatedShifts(data)
-        }));
         dispatch(fetch('shifts', '/shifts', {
-            start: moment(period.start).format(),
-            end: moment(period.end).format()
+            start: moment(period.start).format('YYYY-MM-DD'),
+            end: moment(period.end).format('YYYY-MM-DD')
         }, data => {
             setUnAllocatedShifts(data.shifts.filter(s => s.shift_status === 'Unallocated'))
+            setAllocatedShifts(data.shifts.filter(s => s.shift_status === 'Allocated'))
         }));
         dispatch(fetch('rosters_stats', '/rosters_stats', {
-            start: moment(period.start).format(),
-            end: moment(period.end).format()
+            start: moment(period.start).format('YYYY-MM-DD'),
+            end: moment(period.end).format('YYYY-MM-DD')
         }));
     }
 
@@ -115,15 +110,27 @@ export default function SchedulesContainer() {
         shifts: mapToCalendar(days, unAllocatedShifts)
     })
 
-    const userShifts = _.groupBy(allocatedShifts, 'user.employeeprofile.id');
+    let userShifts = [];
+    for (const shf of allocatedShifts){
+        for (const alS of shf.allocations){
+            if (alS.user === null) continue;
+            userShifts.push({
+                ...shf,
+                ...alS,
+                allocations: []
+            })
+        }
+    }
+    console.log(userShifts)
+    userShifts = _.groupBy(userShifts, 'user.profile.id');
     _.forEach(userShifts,shifts => {
         const shift = shifts[0];
         tassigned.push({
             employee: {
-                name: [_.get(shift.user.employeeprofile, 'first_name'), _.get(shift.user.employeeprofile, 'other_names')].join(" "),
-                first_name: _.get(shift.user.employeeprofile, 'first_name'),
-                other_names: _.get(shift.user.employeeprofile, 'other_names'),
-                id: _.get(shift.user.employeeprofile, 'id'),
+                name: [_.get(shift.user.profile, 'first_name'), _.get(shift.user.profile, 'other_names')].join(" "),
+                first_name: _.get(shift.user.profile, 'first_name'),
+                other_names: _.get(shift.user.profile, 'other_names'),
+                id: _.get(shift.user.profile, 'id'),
             },
 
             shifts: mapToCalendar(days, shifts)
@@ -163,6 +170,8 @@ export default function SchedulesContainer() {
             }, 0)
         },
     ]
+
+    const toDate = (date, time) => moment.utc(`${date}T${time}`);
     return(
         <>
             {
@@ -172,6 +181,7 @@ export default function SchedulesContainer() {
                         const query = qs.stringify({ start: moment(period.start).format('YYYY-MM-DD')});
                         history.push(['/schedules', query].join('?'));
                     }}
+                    OnAssign={update}
                     shift={shift}
                 />
             }
@@ -208,7 +218,7 @@ export default function SchedulesContainer() {
                         <tbody>
                         <tr>
                             <td colSpan={days.length + 1} style={{background: "#f3f8f9"}}>
-                                <ScheduleSection>Unassigned Shits</ScheduleSection>
+                                <ScheduleSection>Unassigned Shifts</ScheduleSection>
                             </td>
                         </tr>
                         <tr>
@@ -236,9 +246,9 @@ export default function SchedulesContainer() {
                                                                 key={id}
                                                                 id={id}
                                                                 shift={sh}
-                                                                beginning={moment.utc(sh.shift_start_time)}
-                                                                termination={moment.utc(sh.shift_end_time)}/>
-
+                                                                beginning={toDate(sh.shiftstartdate, sh.shiftstarttime)}
+                                                                termination={toDate(sh.shiftstartdate, sh.shiftendtime)}
+                                                            />
                                                         )
                                                     })
                                                 }
@@ -251,10 +261,10 @@ export default function SchedulesContainer() {
                         </tr>
                         <tr>
                             <td colSpan={days.length + 1} style={{background: "#f3f8f9"}}>
-                                <ScheduleSection>Assigned Shits</ScheduleSection>
+                                <ScheduleSection>Assigned Shifts</ScheduleSection>
                             </td>
                         </tr>
-                        {_.sortBy(tassigned, ['employee.other_names', 'employee.first_name']).map((s) => {
+                        {_.sortBy(tassigned, ['user.profile.first_name', 'user.profile.other_names']).map((s) => {
                             return (
                                 <tr key={s.employee.id}>
                                     <td style={{ whiteSpace: 'nowrap', border: "1px solid #dfdfdf", padding: '1rem'}}>
@@ -280,8 +290,9 @@ export default function SchedulesContainer() {
                                                             id={id}
                                                             key={id}
                                                             shift={sh}
-                                                            beginning={moment.utc(sh.shift_start_time)}
-                                                            termination={moment.utc(sh.shift_end_time)}/>
+                                                            beginning={toDate(sh.shiftstartdate, sh.shiftstarttime)}
+                                                            termination={toDate(sh.shiftstartdate, sh.shiftendtime)}
+                                                        />
                                                     })
                                                 }
                                             </td>

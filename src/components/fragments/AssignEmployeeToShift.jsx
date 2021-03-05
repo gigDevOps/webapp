@@ -13,24 +13,22 @@ import {Button} from "rsuite";
 
 export default function AssignEmployeeToShift({ shiftID, onSuccess }) {
     const employeesData = useSelector((store) => store.employees.data);
+    const user = useSelector((store) => store.user.data);
     const isFetchingEmployees = useSelector((store) => store.employees.isFetching);
     const {register, errors, handleSubmit, watch, control, setValue} = useForm({
         defaultValues: {
-            employees: []
+            employee_id: null,
         }
     });
     const dispatch = useDispatch();
 
     useEffect(() => {
-        register({name: "employees"});
+        register("employee_id");
         dispatch(fetch("employees", "/candidate_profile"));
     }, [dispatch, register]);
 
     const onEmployeeChange = (e) => {
-        const employees = e.map((emp) => {
-            return { id: emp.key, name: emp.value };
-        })
-        setValue("employees", employees.pop());
+        setValue("employee_id", e[0].key);
     }
     const [showCreateEmployee, hideCreateEmployee] = useModal(() => (
         <ReactModal isOpen style={{overlay: { zIndex: 9 }}} ariaHideApp={false}>
@@ -43,31 +41,30 @@ export default function AssignEmployeeToShift({ shiftID, onSuccess }) {
         </ReactModal>
     ))
     const employeesOptions = !isFetchingEmployees ? employeesData.map((e) => {
-        return {key: e.id, value: `(${e.ext_ref || e.id.substr(0, 8)}) ${e.first_name} ${e.other_names}`}
+        return {key: e.user.id, value: `${e.first_name} ${e.other_names}`}
     }) : [];
 
     const onSubmit = (data) => {
-        const path = ['/shifts', shiftID, 'assign'].join("/");
-        const res = dispatch(create('shift', path, data, () => {
+        dispatch(create('shift_allocation', '/shift_allocation', {
+            shift_id: shiftID,
+            supervisor_id: user.id,
+            ...data
+        }, () => {
             onSuccess();
         }));
-        console.log("dispatch", res);
     }
     return (
         <form onSubmit={handleSubmit(onSubmit)} autoComplete="none" style={{ maxWidth: "30rem"}}>
             <InputGroup label="Employee" tooltip="Nothing to help">
-            <Controller
-                as={
-                    <Autoselect
-                        options={employeesOptions}
-                        isCreatable={true}
-                        maxSelection={1}
-                        renderCreation={(query) => {
-                            showCreateEmployee();
-                        }}
-                        onChange={onEmployeeChange}
-                    />
-                } control={control} name="employees"/>
+                <Autoselect
+                    options={employeesOptions}
+                    isCreatable={true}
+                    maxSelection={1}
+                    renderCreation={(query) => {
+                        showCreateEmployee();
+                    }}
+                    onChange={onEmployeeChange}
+                />
             </InputGroup>
             <Button appearance="ghost" type="submit">Assign</Button>
         </form>

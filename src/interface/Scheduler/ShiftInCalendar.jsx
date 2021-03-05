@@ -11,15 +11,14 @@ export default function ShiftInCalendar({ id, beginning, termination, shift, sho
     const isNoShow = shift.is_finished && !shift.is_fullfilled;
     const clock = shift.is_finished ? <><AiOutlineClockCircle /> {shift.minutes_worked}</> : "";
     const location = shift.location ? shift.location.name : "N/A";
-    const position = shift.position ? shift.position.name : "N/A";
+    const position = shift.location ? shift.location.address : "N/A";
 
     return(
         <Wrapper color={isNoShow ? 'red' : color} opacity={opacity} border={border} textColor={textColor} onClick={() => {
             history.push('/schedules/shifts/' + id + history.location.search);
-            console.log("shiftInCalendar", id);
         }}>
             <Row>{beginning.format( 'h:m a')} - {termination.format( 'h:m a')} <Emp>{workingHours}</Emp> { shift.is_started && clock}</Row>
-            <Row>{position} - {location}</Row>
+            <Row>{location} ({position})</Row>
         </Wrapper>
     )
 }
